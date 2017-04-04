@@ -15,12 +15,7 @@ One the primary use cases for the JSR223 scripting is to define rules for the [E
 Using the raw ESH API, the simplest rule definition would look something like:
 
 
-```JavaScript 
-'use strict';
-
-ScriptExtension.importPreset("RuleSupport");
-ScriptExtension.importPreset("RuleSimple");
-
+```JavaScript
 var sRule = new SimpleRule(){
     execute: function( module, input){
         print("################ module:", module);
@@ -44,12 +39,7 @@ automationManager.addRule(sRule);
 
 This can be simplified with some extra JavaScript Code, found in `jslib/JSRule.js`:
 
-```JavaScript 
-'use strict';
-
-ScriptExtension.importPreset("RuleSupport");
-ScriptExtension.importPreset("RuleSimple");
-
+```JavaScript
 JSRule({
     triggers: [
         TimerTrigger("0/15 * * * * ?")//Enable/Disable Rule
@@ -63,6 +53,8 @@ JSRule({
 ```
 
 `jslib/helper.js` contains more simplifying and helping functions.
+
 `jslib/triggersAndConditions.js` contains trigger functions.
+
  
 
