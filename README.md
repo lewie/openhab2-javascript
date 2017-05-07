@@ -16,6 +16,10 @@ Using the raw ESH API, the simplest rule definition would look something like:
 
 
 ```JavaScript
+'use strict';
+se.importPreset("RuleSupport");
+se.importPreset("RuleSimple");
+
 var sRule = new SimpleRule(){
     execute: function( module, input){
         print("################ module:", module);
@@ -40,6 +44,9 @@ automationManager.addRule(sRule);
 This can be simplified with some extra JavaScript Code, found in `jslib/JSRule.js`:
 
 ```JavaScript
+'use strict';
+load('./../conf/automation/jsr223/jslib/JSRule.js');
+
 JSRule({
     triggers: [
         TimerTrigger("0/15 * * * * ?")//Enable/Disable Rule
