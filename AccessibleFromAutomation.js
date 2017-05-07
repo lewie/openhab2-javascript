@@ -1,16 +1,17 @@
 'use strict';
 
-load('./automation/jsr223/jslib/helper.js');
-load('./automation/jsr223/jslib/triggersAndConditions.js');
+load('./../conf/automation/jsr223/jslib/helper.js');
+load('./../conf/automation/jsr223/jslib/triggersAndConditions.js');
 
 logInfo("################# AccessibleFromAutomation.js ##################");
 
-var rSup = ScriptExtension.importPreset("RuleSupport");
-var rSim = ScriptExtension.importPreset("RuleSimple");
-var rFac = ScriptExtension.importPreset("RuleFactories");
-var rDef = ScriptExtension.importPreset("default");
+var rSup = se.importPreset("RuleSupport");
+var rSim = se.importPreset("RuleSimple");
+var rFac = se.importPreset("RuleFactories");
+var rDef = se.importPreset("default");
+var rMed = se.importPreset("media");
 
-logWarn(" -- ScriptExtension.presets "+__LINE__, ScriptExtension.presets); 
+logWarn(" -- ScriptExtension.presets "+__LINE__, se.presets); 
 
 logInfo(" reachable"+__LINE__, "###############################################");
 logInfo(" reachable"+__LINE__, "SimpleRule", SimpleRule);
@@ -40,7 +41,7 @@ logInfo(" types"+__LINE__, "Rule", Rule);
 logInfo(" types"+__LINE__, "ModuleType", ModuleType);
 logInfo(" types"+__LINE__, "ActionType", ActionType);
 //RuleSupportScriptExtension -> presets.put("RuleSimple", Arrays.asList("ScriptedRule", "SimpleRule"));
-logInfo(" types"+__LINE__, "ScriptedRule", ScriptedRule);
+//logInfo(" types"+__LINE__, "ScriptedRule", ScriptedRule);
 logInfo(" types"+__LINE__, "SimpleRule", SimpleRule);
 //RuleSupportScriptExtension -> presets.put("RuleFactories", Arrays.asList("ActionHandlerFactory", "ConditionHandlerFactory", "TriggerHandlerFactory", "TriggerType", "ConfigDescriptionParameter"));
 logInfo(" types"+__LINE__, "ActionHandlerFactory", ActionHandlerFactory);
@@ -97,3 +98,4 @@ logInfo(" services "+__LINE__, "things", things);
 logInfo(" services "+__LINE__, "events", events);
 logInfo(" services "+__LINE__, "rules", rules);
 logInfo(" services "+__LINE__, "###############################################");
+

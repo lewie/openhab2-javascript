@@ -1,23 +1,42 @@
 'use strict';
   
+ 
 	//https://wiki.shibboleth.net/confluence/display/IDP30/ScriptedAttributeDefinition
-	var logger = Java.type("org.slf4j.LoggerFactory").getLogger("org.eclipse.smarthome.automation.module.script.rulesupport.internal.shared.SimpleRule");
-	var uuid = Java.type("java.util.UUID");
-	var ScriptExecution = Java.type("org.eclipse.smarthome.model.script.actions.ScriptExecution");
-	//var QuartzScheduler = Java.type("org.quartz.core.QuartzScheduler");
+	var logger 					= Java.type("org.slf4j.LoggerFactory").getLogger("org.eclipse.smarthome.automation.module.script.rulesupport.internal.shared.SimpleRule");
+	var uuid 					= Java.type("java.util.UUID");
+//	var ScriptExecution 		= Java.type("org.eclipse.smarthome.model.script.actions.ScriptExecution");
+	var ScriptServiceUtil 		= Java.type("org.eclipse.smarthome.model.script.ScriptServiceUtil");
+	var ExecUtil 				= Java.type("org.eclipse.smarthome.io.net.exec.ExecUtil");
 	
+	//Types
+	var UnDefType 				= Java.type("org.eclipse.smarthome.core.types.UnDefType");
+	var StringListType 			= Java.type("org.eclipse.smarthome.core.library.types.StringListType");	
+	var RawType 				= Java.type("org.eclipse.smarthome.core.library.types.RawType");
+	var RewindFastforwardType 	= Java.type("org.eclipse.smarthome.core.library.types.RewindFastforwardType");
+	var PlayPauseType 			= Java.type("org.eclipse.smarthome.core.library.types.PlayPauseType");
+	var NextPreviousType 		= Java.type("org.eclipse.smarthome.core.library.types.NextPreviousType");
+		
 	//Time JAVA 7 joda
-	var DateTime = Java.type("org.joda.time.DateTime");
+	var DateTime 				= Java.type("org.joda.time.DateTime");
 	//Time JAVA 8
-	var LocalDate = Java.type("java.time.LocalDate");
-	var LocalDateTime = Java.type("java.time.LocalDateTime");
-	var LocalTime = Java.type("java.time.LocalTime");
-	var Month = Java.type("java.time.Month");
+	var LocalDate 				= Java.type("java.time.LocalDate");
+	var LocalDateTime 			= Java.type("java.time.LocalDateTime");
+	var LocalTime 				= Java.type("java.time.LocalTime");
+	var Month 					= Java.type("java.time.Month");
+	
+	//var QuartzScheduler = Java.type("org.quartz.core.QuartzScheduler");
 	
 (function(context) {
   'use strict';	
+	
 	//Todo missing:
-	context.UnDefType = Java.type("org.eclipse.smarthome.core.types.UnDefType");
+	context.UnDefType 	= UnDefType;
+	context.REWIND 		= RewindFastforwardType.REWIND;
+	context.FASTFORWARD	= RewindFastforwardType.FASTFORWARD;
+	context.PLAY 		= PlayPauseType.PLAY;
+	context.PAUSE		= PlayPauseType.PAUSE;
+	context.NEXT		= NextPreviousType.NEXT;
+    context.PREVIOUS	= NextPreviousType.PREVIOUS;
 	
 	context.uuid = uuid;
 	
@@ -85,20 +104,20 @@
 	context.updateIfUninitialized = function(it, val) {	
 		try {
 			var item = context.getItem(it);
-			/*
-			context.logInfo("|-|-updateIfUninitialized "+__LINE__, item +" -> "+val);	//val -> undefined
-			context.logInfo("|-|-updateIfUninitialized "+__LINE__, isUninitialized(it));	//true
-			context.logInfo("|-|-updateIfUninitialized "+__LINE__, val == undefined);    //true
-			context.logInfo("|-|-updateIfUninitialized "+__LINE__, val == "undefined");  //false
-			context.logInfo("|-|-updateIfUninitialized "+__LINE__, val === null);        //false
-			context.logInfo("|-|-updateIfUninitialized "+__LINE__, val == null);         //true
-			if(val){context.logInfo("|-|-updateIfUninitialized "+__LINE__, "val is defined!!!!")};
-			if(item){context.logInfo("|-|-updateIfUninitialized "+__LINE__, "item is defined!!!!")}; //item is defined!!!!
+			//
+			//context.logInfo("|-|-updateIfUninitialized "+__LINE__, item +" -> "+val);	//val -> undefined
+			//context.logInfo("|-|-updateIfUninitialized "+__LINE__, isUninitialized(it));	//true
+			//context.logInfo("|-|-updateIfUninitialized "+__LINE__, val == undefined);    //true
+			//context.logInfo("|-|-updateIfUninitialized "+__LINE__, val == "undefined");  //false
+			//context.logInfo("|-|-updateIfUninitialized "+__LINE__, val === null);        //false
+			//context.logInfo("|-|-updateIfUninitialized "+__LINE__, val == null);         //true
+			//if(val){context.logInfo("|-|-updateIfUninitialized "+__LINE__, "val is defined!!!!")};
+			//if(item){context.logInfo("|-|-updateIfUninitialized "+__LINE__, "item is defined!!!!")}; //item is defined!!!!
 			
-			if(item && item.state instanceof UnDefType){
-				if(item.type == 
-			}
-			*/
+			//if(item && item.state instanceof UnDefType){
+			//	if(item.type == 
+			//}
+			//
 			if(item == undefined || item == null){
 				//gefährlich, es fehlt dann zB intValue()
 				//if(val != undefined)postUpdate( it, val);
@@ -134,7 +153,7 @@
 	
 	context.createTimer = function(time, runnable) {
 		//return QuartzScheduler.createTimer(time, runnable);
-		return ScriptExecution.createTimer(time, runnable);
+		return se.createTimer(time, runnable);
 	};
 	
 	//round(ungerundeter Wert, Stellen nach dem Komma); round(6,66666, 2); -> 6,67
@@ -157,7 +176,7 @@
 	context.getActions = function() {
 		if(actions == null){
 			actions = {};
-			var services = Java.type("org.eclipse.smarthome.model.script.ScriptServiceUtil").getActionServices();
+			var services = ScriptServiceUtil.getActionServices();
 			if (services != null) {
 				for (var actionService in services) {
 					var cn = services[actionService].getActionClassName();
@@ -176,7 +195,21 @@
 		}
 		return actions[str];
 	};
-
+	
+	//### ExecUtil ###
+	context.executeCommandLine = function(commandLine) {
+		if(commandLine == null || commandLine == "" ){
+			return null;
+		}
+		return ExecUtil.executeCommandLine(commandLine);
+	};
+	context.executeCommandLineAndWaitResponse = function(commandLine, timeout) {
+		if(commandLine == null || commandLine == "" ){
+			return null;
+		}
+		return ExecUtil.executeCommandLineAndWaitResponse(commandLine, timeout);
+	};
+	
 	//### Locals Vars
 	var actions = null;
 
@@ -192,5 +225,6 @@
 		}
 		return s1 + um;
 	};
+	
 	
 })(this);

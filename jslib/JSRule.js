@@ -1,12 +1,16 @@
 'use strict';
 
-ScriptExtension.importPreset("RuleSupport");
-ScriptExtension.importPreset("RuleSimple");
-ScriptExtension.importPreset("RuleFactories");
-ScriptExtension.importPreset("default");
+se.importPreset("RuleSupport");
+se.importPreset("RuleSimple");
+se.importPreset("RuleFactories");
+se.importPreset("default");
+se.importPreset("media");
 
-load('./automation/jsr223/jslib/helper.js');
-load('./automation/jsr223/jslib/triggersAndConditions.js');
+
+load('./../conf/automation/jsr223/jslib/helper.js');
+load('./../conf/automation/jsr223/jslib/triggersAndConditions.js');
+
+logInfo(" ################  JSRule Line: "+__LINE__+"  #################");
 
 //Simplifies spelling for rules.
 (function(context) {
@@ -19,6 +23,13 @@ load('./automation/jsr223/jslib/triggersAndConditions.js');
 			execute: obj.execute
 		};
 		var triggers = obj.triggers ? obj.triggers : obj.getEventTrigger();
+
+		if(obj.description){
+			rule.setDescription(obj.description);
+		}
+		if(obj.name){
+			rule.setName(obj.name);
+		}
 		
 		//1. Register rule here
 		if(triggers && triggers.length > 0){
@@ -27,7 +38,7 @@ load('./automation/jsr223/jslib/triggersAndConditions.js');
 		}
 		
 		//2. OR second option, to add Rules in rulefile. Is not needed.
-		//return rule;
+		return rule;
 	};
   
 })(this);

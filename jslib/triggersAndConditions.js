@@ -1,6 +1,6 @@
 'use strict';
-ScriptExtension.importPreset("RuleSupport");
-ScriptExtension.importPreset("RuleFactories");
+se.importPreset("RuleSupport");
+se.importPreset("RuleFactories");
 
 if(HashSet == undefined)var HashSet = Java.type("java.util.HashSet");
 if(Visibility == undefined)var Visibility = Java.type("org.eclipse.smarthome.automation.Visibility");
@@ -56,7 +56,7 @@ var StartupTrigger = setStartupTrigger;
 
 // ### ChangedEventTrigger ###
 var setItemStateChangeTrigger = function(itemName, oldState, newState, triggername){
-	logWarn("#### ChangedEventTrigger "+__LINE__, triggername);
+	//logWarn("#### ChangedEventTrigger "+__LINE__, triggername);
     var triggerName = triggerName ? triggerName : itemName;
     return new Trigger(triggername, "core.ItemStateChangeTrigger", new Configuration({
         "itemName": itemName,
@@ -69,7 +69,7 @@ var ChangedEventTrigger = setItemStateChangeTrigger;
 
 // ### UpdatedEventTrigger ###
 var setItemStateUpdateTrigger = function(itemName, state, triggername){
-	logWarn("#### UpdatedEventTrigger "+__LINE__, triggername);
+	//logWarn("#### UpdatedEventTrigger "+__LINE__, triggername);
     var triggerName = triggerName ? triggerName : itemName;
     return new Trigger(triggername, "core.ItemStateUpdateTrigger", new Configuration({
         "itemName": itemName,
@@ -81,7 +81,7 @@ var UpdatedEventTrigger = setItemStateUpdateTrigger;
 
 // ### CommandEventTrigger ###
 var CommandEventTrigger = function(itemName, command, triggername){
-	logWarn("#### CommandEventTrigger "+__LINE__, triggername);
+	//logWarn("#### CommandEventTrigger "+__LINE__, triggername);
     var triggerName = triggerName ? triggerName : itemName;
     return new Trigger(triggername, "core.ItemCommandTrigger", new Configuration({
         "itemName": itemName,

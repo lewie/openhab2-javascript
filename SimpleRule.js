@@ -1,27 +1,22 @@
 'use strict';
 
-ScriptExtension.importPreset("RuleSupport");
-ScriptExtension.importPreset("RuleSimple");
+scriptExtension.importPreset("RuleSupport");//scriptExtension == se
+scriptExtension.importPreset("RuleSimple");
 
 var sRule = new SimpleRule(){
-	execute: function( module, input){
-		print("################ module:", module);
-		events.postUpdate(ir.getItem("testItemSwitch"), ON);
-		events.sendCommand(ir.getItem("testItemSwitch"), OFF);
-	}
+    execute: function( module, input){
+        print("Hello World from JavaScript");
+    }
 };
 
 sRule.setTriggers([
-		new Trigger(
-			"aTimerTrigger", 
-			"timer.GenericCronTrigger", 
-			new Configuration({
-				"cronExpression": "0/15 * * * * ?"
-			})
-		)
+        new Trigger(
+            "aTimerTrigger", 
+            "timer.GenericCronTrigger", 
+            new Configuration({
+                "cronExpression": "0/15 * * * * ?"
+            })
+        )
     ]);
 
 //automationManager.addRule(sRule);
-
-
-

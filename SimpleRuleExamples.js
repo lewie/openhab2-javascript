@@ -1,6 +1,6 @@
 'use strict';
 
-load('./automation/jsr223/jslib/JSRule.js');
+load('./../conf/automation/jsr223/jslib/JSRule.js');
 
 logInfo("################# SimpleRuleExamples.js ##################");
 
@@ -8,13 +8,22 @@ logInfo("################# SimpleRuleExamples.js ##################");
 var xRule = new SimpleRule(){
 	execute: function( module, input){
 		logInfo(" ################  xRule Line: "+__LINE__+"  #################");
+		logInfo(" xRule::execute "+__LINE__, " input "+ input, " module "+ module, " uuid "+ uuid.randomUUID());
+		
+		for( var i in input){
+			var ai = input[i];
+			logInfo(" -- input "+i +" = "+ ai);
+		}
+		
 	}
 };
 xRule.setTriggers([
 		TimerTrigger("0/15 * * * * ?")
 ]);
 //Enable/Disable Rule:
-automationManager.addRule(xRule);
+//automationManager.addRule(xRule);
+//logInfo(" -- getUID "+xRule.getUID());
+//logInfo(" -- getUID "+automationManager.addRule(xRule).getUID());
 
 
 //### Example 2: More backward compatible spelling
@@ -26,6 +35,7 @@ JSRule({
 	},
 	execute: function( module, input){
 		logInfo(" ################  yRule Line: "+__LINE__+"  #################");
+		logInfo(" yRule::execute "+__LINE__, " input "+ input, " module "+ module);
 	}
 });
 
@@ -42,20 +52,23 @@ JSRule({
 
 //### Example 4: Most simple spelling live.
 JSRule({
+	name: "Example 4",
+	description: "Most simple spelling live",
 	triggers: [ //Enable/Disable Rule
 		//NOT Working: ShutDown()
 		//NOT Working: StartupTrigger()
 		//stateCondition("testItemSwitch", "ON", "cond1") //Error: Can not create new object with constructor org.eclipse.smarthome.automation.Condition with the passed arguments; they do not match any of its method signatures.
 		//IS WORKING: TimerTrigger("0/15 * * * * ?")
 		//IS WORKING: new TimerTrigger("0/15 * * * * ?")
-		TimerTrigger("0/15 * * * * ?")
+		//TimerTrigger("0/15 * * * * ?")
+		//StartupTrigger()
 		//IS WORKING: ChangedEventTrigger("testItemSwitch", "ON", "OFF")
 		//IS WORKING: UpdatedEventTrigger("testItemSwitch"),
 		//IS WORKING: CommandEventTrigger("testItemSwitch")
 	],
 	execute: function( module, input){
-		logInfo(" ################  yRule Line: "+__LINE__+"  #################");
-		logInfo(" yRule::execute "+__LINE__, " input "+ input);
+		logInfo(" ################  zRule Line: "+__LINE__+"  #################");
+		logInfo(" zRule::execute "+__LINE__, " input "+ input, " module "+ module);
 		logInfo("uuid "+__LINE__, uuid.randomUUID()); 
 		
 		//Logging
