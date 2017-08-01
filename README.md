@@ -1,10 +1,10 @@
 # openHAB 2.x: JSR223 JavaScript  Code
 
-This is a repository of very experimental JavaScript code that can be used with the SmartHome platform and openHAB 2.x (after the pending [PR](https://github.com/eclipse/smarthome/pull/1783) has been merged).
+This is a repository of very experimental JavaScript code that can be used with the SmartHome platform and openHAB 2.x.
 
 ## Applications
 
-The JSR223 scripting extensions can be used for general scripting purposes, including defining rules like in openHAB 1.x. So openHAB 1.x JavaScript  Code can be migrated from openHAB 1 JSR223 binding to openHAB 2 automation.
+The JSR223 scripting extensions can be used for general scripting purposes, including defining rules like in openHAB 1.x. So openHAB 1.x JavaScript Code can be migrated from openHAB 1 JSR223 binding to openHAB 2 automation.
 
 ## Defining Rules
 
@@ -48,6 +48,8 @@ This can be simplified with some extra JavaScript Code, found in `jslib/JSRule.j
 load('./../conf/automation/jsr223/jslib/JSRule.js');
 
 JSRule({
+    name: "My JS Rule",
+    description: "Line:"+__LINE__,
     triggers: [
         TimerTrigger("0/15 * * * * ?")//Enable/Disable Rule
     ],
