@@ -4,23 +4,19 @@ se.importPreset("RuleSupport");
 se.importPreset("RuleSimple");
 se.importPreset("RuleFactories");
 se.importPreset("default");
-se.importPreset("media");
-
 
 load('./../conf/automation/jsr223/jslib/helper.js');
 load('./../conf/automation/jsr223/jslib/triggersAndConditions.js');
-
-logInfo(" ################  JSRule Line: "+__LINE__+"  #################");
 
 //Simplifies spelling for rules.
 (function(context) {
   'use strict';
   
 	context.JSRule = function(obj) {
-		logInfo(" ################  JSRule Line: "+__LINE__+"  #################");
-		
+		//logInfo("################  JSRule Line: "+__LINE__+"  #################");
 		var rule = new SimpleRule(){
-			execute: obj.execute
+			execute: obj.execute,
+			uid: uuid.randomUUID()
 		};
 		var triggers = obj.triggers ? obj.triggers : obj.getEventTrigger();
 

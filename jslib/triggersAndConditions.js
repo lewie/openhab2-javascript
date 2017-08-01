@@ -45,67 +45,74 @@ automationManager.addTriggerType(new TriggerType(
 	
 automationManager.addTriggerHandler(STARTUP_MODULE_ID, _StartupTriggerHandlerFactory);
 
-var setStartupTrigger = function(triggerName){
-	logWarn("#### StartupTrigger "+__LINE__, triggerName);
-    triggerName = triggerName ? triggerName : uuid.randomUUID();
-	logWarn("#### StartupTrigger "+__LINE__, triggerName);
-    return new Trigger(triggerName, "jsr223.StartupTrigger", new Configuration());
+var StartupTrigger = function(triggerName){
+    return new Trigger( getTrName(triggerName), "jsr223.StartupTrigger", new Configuration());
 }
-var StartupTrigger = setStartupTrigger; 
-
 
 // ### ChangedEventTrigger ###
-var setItemStateChangeTrigger = function(itemName, oldState, newState, triggername){
-	//logWarn("#### ChangedEventTrigger "+__LINE__, triggername);
-    var triggerName = triggerName ? triggerName : itemName;
-    return new Trigger(triggername, "core.ItemStateChangeTrigger", new Configuration({
+var ItemStateChangeTrigger = function(itemName, oldState, newState, triggerName){
+    return new Trigger( getTrName(triggerName), "core.ItemStateChangeTrigger", new Configuration({
         "itemName": itemName,
         "state": newState,
         "oldState": oldState
     }));
 }
-var ChangedEventTrigger = setItemStateChangeTrigger; 
+var ChangedEventTrigger = ItemStateChangeTrigger; 
 
 
 // ### UpdatedEventTrigger ###
-var setItemStateUpdateTrigger = function(itemName, state, triggername){
-	//logWarn("#### UpdatedEventTrigger "+__LINE__, triggername);
-    var triggerName = triggerName ? triggerName : itemName;
-    return new Trigger(triggername, "core.ItemStateUpdateTrigger", new Configuration({
+var ItemStateUpdateTrigger = function(itemName, state, triggerName){
+    return new Trigger( getTrName(triggerName), "core.ItemStateUpdateTrigger", new Configuration({
         "itemName": itemName,
         "state": state
     }));
 }
-var UpdatedEventTrigger = setItemStateUpdateTrigger; 
+var UpdatedEventTrigger = ItemStateUpdateTrigger; 
 
 
 // ### CommandEventTrigger ###
-var CommandEventTrigger = function(itemName, command, triggername){
-	//logWarn("#### CommandEventTrigger "+__LINE__, triggername);
-    var triggerName = triggerName ? triggerName : itemName;
-    return new Trigger(triggername, "core.ItemCommandTrigger", new Configuration({
+var ItemCommandTrigger = function(itemName, command, triggerName){
+	//logWarn("#### CommandEventTrigger "+__LINE__, triggerName);
+    return new Trigger( getTrName(triggerName), "core.ItemCommandTrigger", new Configuration({
         "itemName": itemName,
         "command": command
     }));
 }
+var CommandEventTrigger = ItemCommandTrigger; 
 
 // ### TimerTrigger ###
 //!!!!!!!! timer.GenericCronTrigger !!!!!!!!!!!!!
-var setGenericCronTrigger = function(expression, triggername){
-    return new Trigger(triggername, "timer.GenericCronTrigger", new Configuration({
+var GenericCronTrigger = function(expression, triggerName){
+    return new Trigger( getTrName(triggerName), "timer.GenericCronTrigger", new Configuration({
         "cronExpression": expression
     }));
 }
-var TimerTrigger = setGenericCronTrigger; 
+var TimerTrigger = GenericCronTrigger; 
 
 
 // ### stateCondition ###
-var setItemStateCondition = function(itemName, state, condName){
-    var triggerName = triggerName ? triggerName : itemName;
-    return new Condition(condName, "core.ItemStateCondition", new Configuration({
+var ItemStateCondition = function(itemName, state, condName){
+    return new Condition( getTrName(condName), "core.ItemStateCondition", new Configuration({
         "itemName": itemName,
         "operator": "=",
         "state": state
     }));
 }
-var stateCondition = setItemStateCondition; 
+var stateCondition = ItemStateCondition; 
+
+// ### GenericCompareCondition ###
+var GenericCompareCondition = function(itemName, state, operator, condName){
+    return new Condition( getTrName(condName), "core.GenericCompareCondition", new Configuration({
+        "itemName": itemName,
+        "operator": operator,// matches, ==, <, >, =<, =>
+        "state": state
+    }));
+}
+//compareCondition("itemName", OFF, "==", "condNameOfCompareCondition")
+var compareCondition = GenericCompareCondition; 
+
+
+
+var getTrName = function(trn){
+	return trn == undefined || trn == null || trn == "" ? uuid.randomUUID() : trn;
+}
