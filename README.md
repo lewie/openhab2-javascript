@@ -61,7 +61,11 @@ JSRule({
 
 `jslib/helper.js` contains more simplifying and helping functions.
 
+`jslib/PersistenceExtensions.js` contains more simplifying PersistenceExtensions functions.
+
 `jslib/triggersAndConditions.js` contains trigger functions.
+
+`ActionExamples.js` contains examples for default actions like PersistenceExtensions, HTTP, Ping, Audio, Voice, ThingAction.
 
  
 
