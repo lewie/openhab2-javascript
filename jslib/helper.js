@@ -255,24 +255,31 @@
 	//### getActions ###
 	context.getActions = function() {
 		if(actions == null){
-			actions = [];
+			actions = {};
 			var services = ScriptServiceUtil.getActionServices();
 			if (services != null) {
 				for (var actionService in services) {
 					var cn = services[actionService].getActionClassName();
 					var className = cn.substring(cn.lastIndexOf(".") + 1);
-					actions[actionService] = className;
+					actions[className] = services[actionService];
+					actionList[actionService] = className;
 				}
 			}
 		}
-		logInfo("actions = " + actions);
+		logInfo("actionList = " + actionList);
 		return actions;
+	};
+	context.getActionList = function(str) {
+		if(actions == null){
+			actions = getActions();
+		}
+		return actionList;
 	};
 	context.getAction = function(str) {
 		if(actions == null){
 			actions = getActions();
 		}
-		return actions[str];
+		return actions[str].getActionClass();
 	};
 	
 	//### ExecUtil ###
@@ -305,6 +312,7 @@
 	
 	//### Locals vars/functions
 	var actions = null;
+	var actionList = [];
 
 	var args = function(a) {
 		var um = a.length > 1 ? "\n" : "";

@@ -26,7 +26,17 @@ JSRule({
 	],
 	execute: function( module, input){
 		logInfo("################ "+me+" Line: "+__LINE__+"  #################");	
-		print("getActions: 	" + JSON.stringify( getActions() ));
+		var a = getActions();
+		var aList = getActionList();
+		print("getActionList: 	" + JSON.stringify( aList ));
+		
+		for(var i=0; i<aList.length; i++){
+			if(aList[i] == "XMPP")logInfo("### "+me+" Line: "+__LINE__+"  ###|"+a[aList[i]].getActionClass().static.sendXMPP("any@xmpp.net","test xmpp")+"|###");
+		}
+
+		//var XMP = ScriptServiceUtil.actionServices[6].getActionClass();//.getConstructor().newInstance();
+		//logInfo("### "+me+" Line: "+__LINE__+"  ###|"+XMP.static.sendXMPP("any@xmpp.net","test xmpp"));
+		
 	}
 });
  
