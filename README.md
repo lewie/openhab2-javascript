@@ -8,6 +8,8 @@ The JSR223 scripting extensions can be used for general scripting purposes, incl
 
 ## Defining Rules
 
+Further links and information: [Scripted Rule Support](https://github.com/eclipse/smarthome/wiki/Scripted-Rule-Support).
+
 One the primary use cases for the JSR223 scripting is to define rules for the [Eclipse SmartHome (ESH) rule engine](http://www.eclipse.org/smarthome/documentation/features/rules.html).
 
 ### Rules: Raw ESH API
