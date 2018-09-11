@@ -1,6 +1,7 @@
 'use strict';
   
-	var mainPath 				= './../conf/automation/jsr223/';
+	var automationPath 			= '/etc/openhab2/automation/';
+	var mainPath 				= automationPath + 'jsr223/';
 	//https://wiki.shibboleth.net/confluence/display/IDP30/ScriptedAttributeDefinition
 	var logger 					= Java.type("org.slf4j.LoggerFactory").getLogger("org.eclipse.smarthome.automation.module.script.rulesupport.internal.shared.SimpleRule");
 	var uuid 					= Java.type("java.util.UUID");
@@ -17,12 +18,16 @@
 	var NextPreviousType 		= Java.type("org.eclipse.smarthome.core.library.types.NextPreviousType");
 		
 	//Time JAVA 7 joda
-	var DateTime 				= Java.type("org.joda.time.DateTime");
+	//var DateTime 				= Java.type("org.joda.time.DateTime");
 	//Time JAVA 8
 	var LocalDate 				= Java.type("java.time.LocalDate");
 	var LocalDateTime 			= Java.type("java.time.LocalDateTime");
 	var LocalTime 				= Java.type("java.time.LocalTime");
 	var Month 					= Java.type("java.time.Month");
+	var ZoneOffset 				= Java.type("java.time.ZoneOffset");
+	var ZoneId 					= Java.type("java.time.ZoneId");
+	var OffsetDateTime 			= Java.type("java.time.OffsetDateTime");
+	
 	
 	//var QuartzScheduler = Java.type("org.quartz.core.QuartzScheduler");
 	
@@ -30,10 +35,13 @@
 	
 (function(context) {
   'use strict';	
-	context.mainPath 	= mainPath;
+	context.automationPath 	= automationPath;
+	context.mainPath 		= mainPath;
 
 	//Todo missing:
 	context.UnDefType 	= UnDefType;
+	context.OPEN 		= OpenClosedType.OPEN;
+	context.CLOSED		= OpenClosedType.CLOSED;
 	context.REWIND 		= RewindFastforwardType.REWIND;
 	context.FASTFORWARD	= RewindFastforwardType.FASTFORWARD;
 	context.PLAY 		= PlayPauseType.PLAY;
@@ -134,7 +142,7 @@
 			return item;
 		}catch(err) {
 			context.logError("updateIfUninitialized "+__LINE__, err);
-			return true;
+			return null;
 		} 
 		return null;
 	};
@@ -147,11 +155,22 @@
 	};
 	
 	context.postUpdate = function(item, value) {
-		events.postUpdate((typeof item === 'string' || item instanceof String) ? ir.getItem(item) : item, value);
+		//events.postUpdate((typeof item === 'string' || item instanceof String) ? ir.getItem(item) : item, value);
+		events.postUpdate(item, value);
 	};
 	
 	context.sendCommand = function(item, value) {
-		events.sendCommand((typeof item === 'string' || item instanceof String) ? ir.getItem(item) : item, value);
+		//events.sendCommand((typeof item === 'string' || item instanceof String) ? ir.getItem(item) : item, value);
+		events.sendCommand(item, value);
+	};
+	
+	//NOT TESTED YET: storeStates(Item...);
+	context.storeStates = function(item) {
+		events.storeStates((typeof item === 'string' || item instanceof String) ? ir.getItem(item) : item);
+	};
+	//NOT TESTED YET: restoreStates(Map<Item, State>);
+	context.restoreStates = function(mapArray) {
+		events.restoreStates(mapArray);
 	};
 	
 	context.createTimer = function(time, runnable) {
@@ -162,10 +181,12 @@
 	//round(ungerundeter Wert, Stellen nach dem Komma); round(6,66666, 2); -> 6,67
 	context.round = function( x, p) { return(Math.round(Math.pow(10, p)*x)/Math.pow(10, p));};
 	
-	//Java8: 
-	//context.now = function() { return LocalTime.now();};
 	//Joda for Java 7
-	context.now = function() { return DateTime.now();};
+	//context.now = function() { return DateTime.now();};
+	//Java8: 
+	context.now 				= function() { return LocalDateTime.now(); };
+	context.zoneOffset 			= function() { return OffsetDateTime.now().getOffset(); }; // +02:00
+	context.isoDateTimeString 	= function() { return context.now() + (""+context.zoneOffset()).split(":").join(""); }; // '2018-09-11T12:39:40.004+0200'
 	
 	context.getObjectProperties = function(obj) {
 		for (var key in obj) {
@@ -254,6 +275,37 @@
 		
 	//### getActions ###
 	context.getActions = function() {
+		/*
+		if(actions == null){
+			actions = {};
+			var services = ScriptServiceUtil.getActionServices();
+			if (services != null) {
+				for (var actionService in services) {
+					var cn = services[actionService].getActionClassName();
+					var cl = services[actionService].getActionClass();
+					var className = cn.substring(cn.lastIndexOf(".") + 1);
+					actions[className] = cl;
+					//logWarn(className + " = " + actions[className]);
+				}
+			}
+		}
+		
+		FUNKTIONIRT IN OH2:
+		var XMP = ScriptServiceUtil.actionServices[6].getActionClass();//.getConstructor().newInstance();
+		logInfo("################ "+me+" Line: "+__LINE__+"  #################|"+XMP.static.sendXMPP("helmutl@lewi-cleantech.net","vvvvvvvvvvv"));
+		
+		//OLD
+		if(actions == null){
+			actions = [];
+			var services = ScriptServiceUtil.getActionServices();
+			if (services != null) {
+				for (var actionService in services) {
+					var cn = services[actionService].getActionClassName();
+					var className = cn.substring(cn.lastIndexOf(".") + 1);
+					actions[actionService] = className;
+				}
+			}
+		}*/
 		if(actions == null){
 			actions = {};
 			var services = ScriptServiceUtil.getActionServices();
@@ -266,6 +318,7 @@
 				}
 			}
 		}
+		logInfo("actions = " + actions);
 		logInfo("actionList = " + actionList);
 		return actions;
 	};

@@ -1,9 +1,117 @@
 'use strict';
 
-load('./../conf/automation/jsr223/jslib/JSRule.js');
+load('/etc/openhab2/automation/jsr223/jslib/JSRule.js');
 
 var me = "ActionExamples.js";
 logInfo("################# "+me+" ##################");
+
+
+var myRule = JSRule({
+	name: me+" Busevents",
+	description: "TEST L:"+__LINE__,
+	triggers: [ 
+		//TimerTrigger("0/55 * * * * ?")
+	],
+	execute: function( module, input){ 
+		logInfo("################ "+me+" Line: "+__LINE__+"  #################");
+		logInfo(" SimpleRule::execute "+__LINE__, " input "+ input);
+		//logInfo("uuid "+__LINE__, uuid.randomUUID(), "bla", "bla"); 
+		logWarn("uuid "+__LINE__, uuid.randomUUID(), "bla", "bla"); 
+		logWarn("Rule "+__LINE__, Rule); 
+		//logDebug("uuid "+__LINE__, uuid.randomUUID(), "bla", "bla"); 
+		//logWarn("uuid "+__LINE__, uuid.randomUUID(), "bla", "bla"); 
+		//logTrace("uuid "+__LINE__, uuid.randomUUID(), "bla", "bla"); 
+		
+		
+		var actions = getActions();
+		for( var i in actions){
+			var ai = actions[i];
+			logWarn(" -- service "+i +" = "+ ai);
+		}
+		
+		logInfo("################ "+me+" Line: "+__LINE__+"  #################");
+		//logWarn(" -- oh ", oh);
+		logInfo("################ "+me+" Line: "+__LINE__+"  #################");
+		logWarn(" -- Rule ", Rule);
+		logInfo("################ "+me+" Line: "+__LINE__+"  #################");
+		
+		//postUpdate("testItemSwitch", OFF);
+		//postUpdate("testItemSwitch", ON);
+		
+		//Java 8 
+		logWarn(" -#### LocalDateTime.now().withMinute(0) "+__LINE__, LocalDateTime.now().withMinute(0));
+		//Java 7
+		logWarn(" -#### DateTime.now().withMinute(0) "+__LINE__, DateTime.now().withMinuteOfHour(0));
+		
+		// Run Timer
+		var runme = function(){logWarn(" runme ", "runme");};
+		createTimer(now().plusSeconds(2), runme);
+		
+		//getAction("XMPP").static.sendXMPP("helmutl@lewi-cleantech.net", "automation XMPP :-)");
+		//sendXMPP("helmutl@lewi-cleantech.net", "automation XMPP :-)");
+		
+		//getAction("Mail").static.sendMail("hl@lewi.io", "automation Mail :-)", "It works!");
+		//sendMail("hl@lewi.io", "automation Mail :-)", "It works!");
+		
+
+		logWarn(" -- getTriggers ", myRule.getTriggers());
+        logWarn(" -- getConditions ", myRule.getConditions());
+        logWarn(" -- getActions ", myRule.getActions());
+        logWarn(" -- getConfigurationDescriptions ", myRule.getConfigurationDescriptions());
+        logWarn(" -- getConfiguration ", myRule.getConfiguration());
+        logWarn(" -- getTemplateUID ", myRule.getTemplateUID());
+        logWarn(" -- getVisibility ", myRule.getVisibility());
+
+	}
+});
+
+
+
+/**
+ * Busevents
+ *
+ * see helper.js too.
+ *
+ * sendCommand(Item, String)
+ * sendCommand(Item, Number)
+ * sendCommand(String, String)
+ * getAcceptedCommandNames(Item)
+ * sendCommand(Item, Command)
+ * postUpdate(Item, Number)
+ * postUpdate(Item, String)
+ * postUpdate(String, String)
+ * getAcceptedDataTypeNames(Item)
+ * postUpdate(Item, State)
+ * storeStates(Item...)
+ * restoreStates(Map<Item, State>)
+ */
+JSRule({
+	name: me+" Busevents",
+	description: "TEST L:"+__LINE__,
+	triggers: [ 
+		//TimerTrigger("0/15 * * * * ?")
+	],
+	execute: function( module, input){
+		logInfo("################ "+me+" Line: "+__LINE__+"  #################");
+		
+		var it = getItem("errors_in_logs");
+		
+		//sendCommand(it, String);
+		//sendCommand(it, Number);
+		//sendCommand(String, String);
+		//sendCommand(it, Command);
+		
+		//postUpdate(it, Number);
+		//postUpdate(it, String);
+		//postUpdate(String, String);
+		//postUpdate(it, State);
+		
+		//NOT TESTED YET: storeStates(it);
+		//NOT TESTED YET: restoreStates([it, State]);
+		//logInfo( me+__LINE__, "meldet "+ it.state +" ");
+	}
+});
+
 
 /**
  * Examples to import and use actions that are provided in standard Rule Engine too.
@@ -31,11 +139,14 @@ JSRule({
 		print("getActionList: 	" + JSON.stringify( aList ));
 		
 		for(var i=0; i<aList.length; i++){
-			if(aList[i] == "XMPP")logInfo("### "+me+" Line: "+__LINE__+"  ###|"+a[aList[i]].getActionClass().static.sendXMPP("any@xmpp.net","test xmpp")+"|###");
+			logInfo("################ "+me+" Line: "+__LINE__+"  #################|"+aList[i]);
+			logInfo("################ "+me+" Line: "+__LINE__+"  #################|"+a[aList[i]]);
+			if(aList[i] == "XMPP")logInfo("### "+me+" Line: "+__LINE__+"  ###|"+a[aList[i]].getActionClass().static.sendXMPP("helmutl@lewi-cleantech.net","jkkkk")+"|###");
 		}
-
+		//
 		//var XMP = ScriptServiceUtil.actionServices[6].getActionClass();//.getConstructor().newInstance();
-		//logInfo("### "+me+" Line: "+__LINE__+"  ###|"+XMP.static.sendXMPP("any@xmpp.net","test xmpp"));
+		//logInfo("################ "+me+" Line: "+__LINE__+"  #################|"+XMP.static.sendXMPP("helmutl@lewi-cleantech.net","vvvvvvvvvvv"));
+		//logInfo("################ "+me+" Line: "+__LINE__+"  #################|"+getAction("XMPP").static.sendXMPP("helmutl@lewi-cleantech.net","jkkkk")+"|##########");
 		
 	}
 });
@@ -131,6 +242,24 @@ JSRule({
 });
 
 /**
+ * Exec on bash
+ */
+JSRule({
+	name: me+" Exec",
+	description: "TEST L:"+__LINE__,
+	triggers: [ 
+		//TimerTrigger("0/15 * * * * ?")
+	],
+	execute: function( module, input){
+		logInfo("################ "+me+" Line: "+__LINE__+"  #################");
+		var antwort = executeCommandLineAndWaitResponse("bash /data/findErrors.sh", 10000);
+		logInfo( me, "meldet "+ antwort +" ");
+		antwort = executeCommandLine("bash /data/findErrors.sh");
+		logInfo( me, "meldet "+ antwort +" ");
+	}
+});
+
+/**
  * Audio
  * playSound(String filename)
  * playSound(String sink, String filename)
@@ -192,4 +321,46 @@ JSRule({
 		logInfo("################ "+me+" Line: "+__LINE__+"  #################");		
 		print("ThingAction getThingStatusInfo of': 	" + ThingAction.getThingStatusInfo("chromecast:chromecast:6a01c5ef0f0a6b3fd15849eda1379ab8"));	
 	}
+});
+
+
+
+
+
+JSRule({
+	name: "Light_UG_Arbeitsraum Mode",
+	description: "",
+	triggers: [ 
+		//IS WORKING: TimerTrigger("0/15 * * * * ?")
+		//IS WORKING: ChangedEventTrigger("testItemSwitch", "ON", "OFF")
+		//IS WORKING: UpdatedEventTrigger("testItemSwitch"),
+        //IS WORKING: CommandEventTrigger("testItemSwitch")
+        CommandEventTrigger("Light_UG_Arbeitsraum") 
+	],
+	execute: function( module, input){
+
+        logInfo("Light_UG_Arbeitsraum", "Light_UG_Arbeitsraum Switched");
+        var receivedCommand = getTriggeredData(input).receivedCommand;
+        logInfo("Light_UG_Arbeitsraum", receivedCommand);
+        /*
+		var Box_Kitchen_Mode = getItem("Box_Kitchen_Mode");
+
+        logInfo("Light_UG_Arbeitsraum", "Light_UG_Arbeitsraum Activated");
+        if (receivedCommand == 2) {
+            logInfo("Light_UG_Arbeitsraum", "Light_UG_Arbeitsraum 2a " + Box_Kitchen_Mode.state);
+            if (Box_Kitchen_Mode.state != 8) {
+                sendCommand("Box_Kitchen_Mode", 8)
+            }
+            logInfo("Light_UG_Arbeitsraum", "Light_UG_Arbeitsraum 2b " + Box_Kitchen_Mode.state);
+        }
+        else {
+            logInfo("Light_UG_Arbeitsraum", "Light_UG_Arbeitsraum 1a " + Box_Kitchen_Mode.state);
+            if (Box_Kitchen_Mode.state != 0) {
+                sendCommand("Box_Kitchen_Mode", 0)
+            }
+            logInfo("Light_UG_Arbeitsraum", "Light_UG_Arbeitsraum 1b " + Box_Kitchen_Mode.state);
+        }*/
+
+    }
+    
 });

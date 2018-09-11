@@ -1,53 +1,28 @@
-# openHAB 2.x: JSR223 JavaScript  Code
+# openHAB 2.x: JSR223 JavaScript Code since 2.4
 
 This is a repository of very experimental JavaScript code that can be used with the SmartHome platform and openHAB 2.x.
 
 ## Applications
 
-The JSR223 scripting extensions can be used for general scripting purposes, including defining rules like in openHAB 1.x. So openHAB 1.x JavaScript Code can be migrated from openHAB 1 JSR223 binding to openHAB 2 automation.
+The JSR223 scripting extensions can be used for general scripting purposes, including defining rules with JavaScript Code for openHAB 2 JSR223 Scripting.
+
+## Installation
+
+Copy Files into /etc/openhab2/automation/jsr223
 
 ## Defining Rules
 
-Further links and information: [Scripted Rule Support](https://github.com/eclipse/smarthome/wiki/Scripted-Rule-Support).
+OpenHAB 2 JSR223 Scripting Documentation: [JSR223 Scripting and Rule Support](https://www.openhab.org/docs/configuration/jsr223.html#jsr223-scripting).
 
-One the primary use cases for the JSR223 scripting is to define rules for the [Eclipse SmartHome (ESH) rule engine](http://www.eclipse.org/smarthome/documentation/features/rules.html).
+Further links and information: [openHAB 1 Scripted Rule Support](https://github.com/eclipse/smarthome/wiki/Scripted-Rule-Support).
 
 ### Rules: Raw ESH API
 
-Using the raw ESH API, the simplest rule definition would look something like:
-
-
-```JavaScript
-'use strict';
-se.importPreset("RuleSupport");
-se.importPreset("RuleSimple");
-
-var sRule = new SimpleRule(){
-    execute: function( module, input){
-        print("################ module:", module);
-        events.postUpdate(ir.getItem("testItemSwitch"), ON);
-        events.sendCommand(ir.getItem("testItemSwitch"), OFF);
-    }
-};
-
-sRule.setTriggers([
-        new Trigger(
-            "aTimerTrigger", 
-            "timer.GenericCronTrigger", 
-            new Configuration({
-                "cronExpression": "0/15 * * * * ?"
-            })
-        )
-    ]);
-
-automationManager.addRule(sRule);
-```
-
-This can be simplified with some extra JavaScript Code, found in `jslib/JSRule.js`:
+Simplified with some extra JavaScript Code, found in `jslib/JSRule.js`:
 
 ```JavaScript
 'use strict';
-load('./../conf/automation/jsr223/jslib/JSRule.js');
+load('/etc/openhab2/automation/jsr223/jslib/JSRule.js');
 
 JSRule({
     name: "My JS Rule",
@@ -57,8 +32,8 @@ JSRule({
     ],
     execute: function( module, input){
         print("################ module:", module);
-        events.postUpdate(ir.getItem("testItemSwitch"), ON);
-        events.sendCommand(ir.getItem("testItemSwitch"), OFF);
+        postUpdate(getItem("testItemSwitch"), ON);
+        sendCommand(getItem("testItemSwitch"), OFF);
     }
 });
 ```
@@ -70,6 +45,8 @@ JSRule({
 `jslib/triggersAndConditions.js` contains trigger functions.
 
 `ActionExamples.js` contains examples for default actions like PersistenceExtensions, HTTP, Ping, Audio, Voice, ThingAction.
+
+`itemTest.js` contains examples for testing Items and Groups.
 
  
 
