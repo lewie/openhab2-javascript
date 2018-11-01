@@ -1,7 +1,8 @@
 'use strict';
 
-load('./../conf/automation/jsr223/jslib/helper.js');
-load('./../conf/automation/jsr223/jslib/triggersAndConditions.js');
+var OPENHAB_CONF = Java.type("java.lang.System").getenv("OPENHAB_CONF"); // most this is /etc/openhab2
+load(OPENHAB_CONF+'/automation/jsr223/jslib/helper.js');
+load(OPENHAB_CONF+'/automation/jsr223/jslib/triggersAndConditions.js');
 
 logInfo("################# AccessibleFromAutomation.js ##################");
 
@@ -62,7 +63,7 @@ logInfo(" types"+__LINE__, "rules", rules);
 logInfo(" activate "+__LINE__, "###############################################");
 logInfo(" activate "+__LINE__, "State", State);
 logInfo(" activate "+__LINE__, "Command", Command);
-logInfo(" activate "+__LINE__, "DateTime", DateTime);
+//logInfo(" activate "+__LINE__, "DateTime", DateTime);
 logInfo(" activate "+__LINE__, "LocalTime", LocalTime);
 logInfo(" activate "+__LINE__, "StringUtils", StringUtils);
 logInfo(" activate "+__LINE__, "URLEncoder", URLEncoder);

@@ -1,5 +1,6 @@
 'use strict';
-load('/etc/openhab2/automation/jsr223/jslib/JSRule.js');
+var OPENHAB_CONF = Java.type("java.lang.System").getenv("OPENHAB_CONF"); // most this is /etc/openhab2
+load(OPENHAB_CONF+'/automation/jsr223/jslib/JSRule.js');
 
 var me = "itemTest.js";
 logInfo("################# "+me+" ##################");

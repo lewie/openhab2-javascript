@@ -22,7 +22,9 @@ Simplified with some extra JavaScript Code, found in `jslib/JSRule.js`:
 
 ```JavaScript
 'use strict';
-load('/etc/openhab2/automation/jsr223/jslib/JSRule.js');
+
+var OPENHAB_CONF = Java.type("java.lang.System").getenv("OPENHAB_CONF");
+load(OPENHAB_CONF+'/automation/jsr223/jslib/JSRule.js');
 
 JSRule({
     name: "My JS Rule",

@@ -5,8 +5,24 @@ se.importPreset("RuleSimple");
 se.importPreset("RuleFactories");
 se.importPreset("default");
 
-load('/etc/openhab2/automation/jsr223/jslib/helper.js');
-load('/etc/openhab2/automation/jsr223/jslib/triggersAndConditions.js');
+var OPENHAB_CONF = Java.type("java.lang.System").getenv("OPENHAB_CONF"); // most this is /etc/openhab2
+load(OPENHAB_CONF+'/automation/jsr223/jslib/helper.js');
+load(OPENHAB_CONF+'/automation/jsr223/jslib/triggersAndConditions.js');
+
+//https://docs.oracle.com/javase/8/docs/technotes/guides/scripting/nashorn/api.html
+//var StSimpleRule = Java.type("org.eclipse.smarthome.automation.module.script.rulesupport.shared.simple.SimpleRule");
+//var StSimpleRuleExt = new StSimpleRule();
+//var ExtendedSimpleRule = Java.extend(SimpleRule, {
+//    setUID: function(i) {
+//		//print("Run in separate thread");
+//		this.uid = i;
+//    }
+//});
+//var Thread = Java.type("java.lang.Thread");
+//var th = new Thread(new MyRun());
+
+
+//if(RuleBuilder == undefined)var RuleBuilder = Java.type("org.eclipse.smarthome.automation.core.util.RuleBuilder");
 
 /*
 
@@ -35,7 +51,7 @@ return RuleBuilder.create(ruleDto.uid)
 		  //logInfo("################  JSRule Line: "+__LINE__+"  #################");
 		  //2. OR second option, to add Rules in rulefile. Is not needed.
 		  var triggers = obj.triggers ? obj.triggers : obj.getEventTrigger();
-		  return RuleBuilder.create( obj.uid ? obj.uid : uuid.randomUUID())
+		  return RuleBuilder.create( obj.uid ? obj.uid : uuid.randomUUID()+me.replace(/[^\w]/g, "-"))
 		  .withActions( obj.actions ? obj.actions : null)
 		  .withConditions( obj.conditions ? obj.conditions : null)
 		  .withTriggers( triggers && triggers.length > 0 ? triggers : null)
@@ -58,13 +74,17 @@ return RuleBuilder.create(ruleDto.uid)
 (function (context) {
 	'use strict';
 
-	context.JSRule = function (obj) {
-		//logInfo("################  JSRule Line: "+__LINE__+"  #################");
+	context.JSRule = function (obj, line) {
+		try{
+			var ruid = uuid.randomUUID() + "-" + obj.name.replace(/[^\w]/g, "-");
+			//logInfo("################  JSRule Line: "+__LINE__+"  ################# ruid:" + ruid);
+			//var rule = new SimpleRule({ setUID: function(i) { uid = i; } })
 		var rule = new SimpleRule(){
-			execute: obj.execute, //DOES THIS WORK? AND IF YES, WHY?
-			uid: uuid.randomUUID()
+				execute: obj.execute //DOES THIS WORK? AND IF YES, WHY? => execute is found in implemented SimpleRuleActionHandler
 		};
 		var triggers = obj.triggers ? obj.triggers : obj.getEventTrigger();
+
+			rule.setTemplateUID(ruid);
 
 		if (obj.description) {
 			rule.setDescription(obj.description);
@@ -81,19 +101,28 @@ return RuleBuilder.create(ruleDto.uid)
 
 		//2. OR second option, to add Rules in rulefile. Is not needed.
 		return rule;
+		}catch(err) {
+			context.logError("JSRule " + __LINE__ + ". obj: '" + obj + "' Error:" +  err);
+		}
+		return null;
 	},
 
+	//TODO like in org.eclipse.smarthome.automation.core.dto.RuleDTOMapper 
+	// or org.eclipse.smarthome.automation.sample.extension.java.internal.WelcomeHomeRulesProvider
+	//Missing SimpleRuleActionHandler!!
 	context.JSRuleNew = function (obj) {
 		//logInfo("################  JSRule Line: "+__LINE__+"  #################");
 		//2. OR second option, to add Rules in rulefile. Is not needed.
+		var rname =  obj.name ? obj.name.replace(/[^\w]/g, "-") : "nameless-generic";
+		var ruid = obj.uid ? obj.uid : uuid.randomUUID() + "-" + rname;
 		var triggers = obj.triggers ? obj.triggers : obj.getEventTrigger();
-		return RuleBuilder.create(obj.uid ? obj.uid : uuid.randomUUID())
-			.withActions(obj.actions ? obj.actions : null)
-			.withConditions(obj.conditions ? obj.conditions : null)
+		return RuleBuilder.create(ruid)
+			.withActions(obj.execute ? [obj.execute] : null)
+			//.withConditions(obj.conditions ? obj.conditions : [])
 			.withTriggers(triggers && triggers.length > 0 ? triggers : null)
-			.withConfiguration(new Configuration(ruleDto.configuration))
+			.withConfiguration(new Configuration(obj.configuration))
 			.withConfigurationDescriptions(obj.configurationDescription ? [obj.configurationDescription] : null)
-			.withTemplateUID(obj.templateUID ? obj.templateUID : null)
+			.withTemplateUID(obj.templateUID ? obj.templateUID : ruid)
 			.withVisibility(obj.visibility ? obj.visibility : null)
 			.withTags(obj.tags ? obj.tags : null)
 			.withName(obj.name ? obj.name : null)

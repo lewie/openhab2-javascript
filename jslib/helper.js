@@ -1,6 +1,6 @@
-'use strict';
-  
-	var automationPath 			= '/etc/openhab2/automation/';
+'use strict'; 
+	var OPENHAB_CONF 			= Java.type("java.lang.System").getenv("OPENHAB_CONF"); // most this is /etc/openhab2
+	var automationPath 			= OPENHAB_CONF+'/automation/';
 	var mainPath 				= automationPath + 'jsr223/';
 	//https://wiki.shibboleth.net/confluence/display/IDP30/ScriptedAttributeDefinition
 	var logger 					= Java.type("org.slf4j.LoggerFactory").getLogger("org.eclipse.smarthome.automation.module.script.rulesupport.internal.shared.SimpleRule");
@@ -8,6 +8,13 @@
 	var ScriptExecution 		= Java.type("org.eclipse.smarthome.model.script.actions.ScriptExecution");
 	var ScriptServiceUtil 		= Java.type("org.eclipse.smarthome.model.script.ScriptServiceUtil");
 	var ExecUtil 				= Java.type("org.eclipse.smarthome.io.net.exec.ExecUtil");
+	var HttpUtil 				= Java.type("org.eclipse.smarthome.io.net.http.HttpUtil");
+
+
+	//Other
+	var Modifier 				= Java.type("java.lang.reflect.Modifier");
+	var InputStream				= Java.type("java.io.InputStream");
+	var IOUtils					= Java.type("org.apache.commons.io.IOUtils");
 	
 	//Types
 	var UnDefType 				= Java.type("org.eclipse.smarthome.core.types.UnDefType");
@@ -18,7 +25,7 @@
 	var NextPreviousType 		= Java.type("org.eclipse.smarthome.core.library.types.NextPreviousType");
 		
 	//Time JAVA 7 joda
-	//var DateTime 				= Java.type("org.joda.time.DateTime");
+	var DateTime 				= Java.type("org.joda.time.DateTime");
 	//Time JAVA 8
 	var LocalDate 				= Java.type("java.time.LocalDate");
 	var LocalDateTime 			= Java.type("java.time.LocalDateTime");
@@ -27,6 +34,8 @@
 	var ZoneOffset 				= Java.type("java.time.ZoneOffset");
 	var ZoneId 					= Java.type("java.time.ZoneId");
 	var OffsetDateTime 			= Java.type("java.time.OffsetDateTime");
+	
+	var Timer = Java.type('java.util.Timer');
 	
 	
 	//var QuartzScheduler = Java.type("org.quartz.core.QuartzScheduler");
@@ -99,7 +108,7 @@
 		} 
 		return null;
 	};
-
+	context.getItem.sendCommand = context.sendCommand;
 	context.isUninitialized = function(it) {
 		try {
 			var item = context.getItem(it);
@@ -153,15 +162,41 @@
 	context.sendXMPP = function(mail, message) {
 		getAction("XMPP").static.sendXMPP(mail, message);
 	};
+	context.transform = function(type, script, value) {
+		//var myList = transform("JS", "wunderground.js", wundergr);//returns String
+		//https://www.openhab.org/docs/configuration/transformations.html#usage
+		context.logInfo("|-|-transform "+__LINE__, "type:" + type, "script:" + script, "content:" + value.substring(0, 40));
+		var t = getAction("Transformation").static.transform;
+		context.logInfo("|-|-transform "+__LINE__, "transform:" + t);
+
+		getAction("Transformation").static.transform(type, script, value);
+	};
 	
 	context.postUpdate = function(item, value) {
 		//events.postUpdate((typeof item === 'string' || item instanceof String) ? ir.getItem(item) : item, value);
+		try {
+			//if(value == null || (!(Object.prototype.toString.call(value) === '[object String]') && isNaN(value) && (value+"") == "NaN")) {
+			//	context.logError("helper.js postUpdate " + __LINE__ + ". Cannot execute postUpdate!. 'command' must not be null or NaN: Item: '" + item + "' with value: '" + value + "'");
+			//}else{
 		events.postUpdate(item, value);
+			//}
+		}catch(err) {
+			context.logError("helper.js postUpdate " + __LINE__ + ". Item: '" + item + "' with value: '" + value + "' ' Error:" +  err);
+		}
 	};
 	
 	context.sendCommand = function(item, value) {
 		//events.sendCommand((typeof item === 'string' || item instanceof String) ? ir.getItem(item) : item, value);
+		//context.logError("sendCommand "+__LINE__, value, value+"" == "NaN", isNaN(value), (Object.prototype.toString.call(value) === '[object String]'));
+		try {
+			//if(value == null || (!(Object.prototype.toString.call(value) === '[object String]') && isNaN(value) && (value+"") == "NaN")) {
+			//	context.logError("helper.js sendCommand " + __LINE__ + ". Cannot execute sendCommand!. 'command' must not be null or NaN: Item: '" + item + "' with value: '" + value + "'");
+			//}else{
 		events.sendCommand(item, value);
+			//}
+		}catch(err) {
+			context.logError("helper.js sendCommand " + __LINE__ + ". Item: '" + item + "' with value: '" + value + "' ' Error:" +  err);
+		}
 	};
 	
 	//NOT TESTED YET: storeStates(Item...);
@@ -173,18 +208,40 @@
 		events.restoreStates(mapArray);
 	};
 	
-	context.createTimer = function(time, runnable) {
+	//context.createTimerOLD = function(time, runnable) {
 		//return QuartzScheduler.createTimer(time, runnable);
-		return ScriptExecution.createTimer(time, runnable);
+	//	return ScriptExecution.createTimer(time, runnable);
+	//};
+
+	//https://blog.codecentric.de/en/2014/06/project-nashorn-javascript-jvm-polyglott/
+	context.timerObject = {
+		timerCount: 0,
+		evLoops:[]
+	};
+	//context.setTimeout = function(fn, millis /*, args... */) {
+	context.createTimer = function(fn, millis, arg) {
+		// ...
+		var t = context.timerObject;
+		if(t.timerCount > 999) t.timerCount = 0;
+		t.timerCount = t.timerCount + 1;
+		t.evLoops[t.timerCount] = new Timer('jsEventLoop'+t.timerCount, false);
+		t.evLoops[t.timerCount].schedule(function() {
+			//context.logInfo("context.createTimer",  millis, t.timerCount, fn);
+			//context.logInfo("context.createTimer " + context.now());
+			fn(arg);
+		  }, millis);
+	   
+		// ...
 	};
 	
 	//round(ungerundeter Wert, Stellen nach dem Komma); round(6,66666, 2); -> 6,67
 	context.round = function( x, p) { return(Math.round(Math.pow(10, p)*x)/Math.pow(10, p));};
 	
-	//Joda for Java 7
-	//context.now = function() { return DateTime.now();};
+	//Joda for Java 7 and openHAB2 !!!!!!NICHT AUF LocalDateTime UMSCHALTEN!!!!!!
+	//https://github.com/JodaOrg/joda-time/issues/81
+	context.now = function() { return DateTime.now();};
 	//Java8: 
-	context.now 				= function() { return LocalDateTime.now(); };
+	//context.now 				= function() { return LocalDateTime.now(); };
 	context.zoneOffset 			= function() { return OffsetDateTime.now().getOffset(); }; // +02:00
 	context.isoDateTimeString 	= function() { return context.now() + (""+context.zoneOffset()).split(":").join(""); }; // '2018-09-11T12:39:40.004+0200'
 	
@@ -347,6 +404,62 @@
 			return null;
 		}
 		return ExecUtil.executeCommandLineAndWaitResponse(commandLine, timeout);
+	};
+	
+	//### HttpUtil ###
+	//FROM: C:\dev\workspace\Lewi_20150721\clones\lc\lewienergy-build\bundles\lewienergy-actions\src\main\java\com\lewicleantech\lewienergy\openhab\action\util\Lewi.java
+	//static public String sendHttpPostRequest(String url, String contentType, String content, int timeout) { 
+	//	//return HttpUtil.executeUrl("POST", url, null, IOUtils.toInputStream(content), contentType, timeout, null); 
+	//	return HttpUtil.executeUrl("POST", url, null, IOUtils.toInputStream(content), contentType, timeout); 
+	//}
+	//var wundergr = getAction("Lewi").static.sendHttpPostRequest(posturl, header, "", timeout);
+
+	context.HttpUtil = HttpUtil;
+	//sendHttpGetRequest(String url): Sends an GET-HTTP request and returns the result as a String
+	context.sendHttpGetRequest = function(url, timeout) {
+		//logInfo("arguments = " + arguments, arguments.length);
+		return context.executeUrl("GET", url, timeout);
+	};
+	//sendHttpPutRequest(String url, Sting contentType, String content): Sends a PUT-HTTP request with the given content and returns the result as a String
+	//sendHttpPutRequest(String url): Sends a PUT-HTTP request and returns the result as a String
+	context.sendHttpPutRequest = function(url, timeout) {
+		return context.executeUrl("PUT", url, timeout);
+	};
+    //sendHttpPostRequest(String url, String contentType, String content): Sends a POST-HTTP request with the given content and returns the result as a String
+	//sendHttpPostRequest(String url): Sends a POST-HTTP request and returns the result as a String
+	context.sendHttpPostRequest = function(url, timeout) {
+		return context.executeUrl("POST", url, timeout);
+	};
+    //sendHttpDeleteRequest(String url): Sends a DELETE-HTTP request and returns the result as a String
+	context.sendHttpDeleteRequest = function(url, timeout) {
+		return context.executeUrl("DELETE", url, timeout);
+	};
+	context.executeUrl = function(httpMethod, url, timeout) {
+		if(url == undefined || url == null || url == "" ){ return null; }
+		if(timeout == undefined ){ timeout = 5000; }
+		return HttpUtil.executeUrl(httpMethod, url, timeout);
+	};
+	//like getAction("Lewi").static.sendHttpPostRequest(posturl, header, "", timeout); 
+	// NOW    => executeUrlPostWithContent(posturl, "", header, timeout);
+	// BETTER =>     executeUrlWithContent("POST", posturl, null, "", header, timeout);
+	//context.executeUrlPostWithContent = function(url, content, contentType, timeout) {
+	//	return context.executeUrlWithContent("POST", url, null, content, contentType, timeout); 
+	//};
+	//executeUrl(String httpMethod, String url, Properties httpHeaders, InputStream content, String contentType, int timeout) 
+	context.executeUrlWithContent = function(httpMethod, url, httpHeaders, content, contentType, timeout) {
+		logInfo("httpMethod = " + httpMethod);
+		logInfo("url = " + url);
+		logInfo("httpHeaders = " + httpHeaders);
+		logInfo("content = " + content);
+		logInfo("contentType = " + contentType);
+		logInfo("timeout = " + timeout);
+		if(httpMethod == undefined || httpMethod == null){ httpMethod = "POST"; }
+		if(url == undefined || url == null || url == "" ){ return null; }
+		if(httpHeaders == undefined ){ httpHeaders = null; }
+		if(content == undefined || content == null ){ content = ""; }
+		if(contentType == undefined || contentType == null ){ contentType = ""; }
+		if(timeout == undefined || timeout == null ){ timeout = 5000; }
+		return HttpUtil.executeUrl(httpMethod, url, httpHeaders, IOUtils.toInputStream(content), contentType, timeout); 
 	};
 	
 	/** STRING FUNCTIONS **/

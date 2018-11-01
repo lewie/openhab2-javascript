@@ -27,7 +27,8 @@ if(GenericCronTriggerHandler    == undefined)var GenericCronTriggerHandler      
 //if(TimeOfDayTriggerHandler      == undefined)var TimeOfDayTriggerHandler        = Java.type("org.eclipse.smarthome.automation.module.timer.handler.TimeOfDayTriggerHandler");
 
 
-// ### StartupTrigger ### DOES NOT WORK!!
+// ### StartupTrigger ### DOES NOT WORK!! TODO?!
+/*
 var _StartupTriggerHandlerFactory = new TriggerHandlerFactory(){
 	get: function(trigger){
 		logWarn(" -#### #### #### #### #### get trigger "+__LINE__, trigger); 
@@ -63,9 +64,9 @@ automationManager.addTriggerType(new TriggerType(
 	[]));
 	
 automationManager.addTriggerHandler(STARTUP_MODULE_ID, _StartupTriggerHandlerFactory);
-
+*/
 var StartupTrigger = function(triggerName){
-    return new Trigger( getTrName(triggerName), "jsr223.StartupTrigger", new Configuration());
+    //DOES NOT WORK - TODO: return new Trigger( getTrName(triggerName), "jsr223.StartupTrigger", new Configuration());
 }
 
 // ### ChannelEventTriggerHandler ###
@@ -86,11 +87,6 @@ var ItemStateChangeTrigger = function(itemName, oldState, newState, triggerName)
         "state": newState,
         "oldState": oldState
     })).build();
-    //return new Trigger( getTrName(triggerName), "core.ItemStateChangeTrigger", new Configuration({
-    //    "itemName": itemName,
-    //    "state": newState,
-    //    "oldState": oldState
-    //}));
 }
 var ChangedEventTrigger = ItemStateChangeTrigger; 
 
@@ -101,10 +97,6 @@ var ItemStateUpdateTrigger = function(itemName, state, triggerName){
         "itemName": itemName,
         "state": state
     })).build();
-    //return new Trigger( getTrName(triggerName), "core.ItemStateUpdateTrigger", new Configuration({
-    //    "itemName": itemName,
-    //    "state": state
-    //}));
 }
 var UpdatedEventTrigger = ItemStateUpdateTrigger; 
 
@@ -116,23 +108,16 @@ var ItemCommandTrigger = function(itemName, command, triggerName){
         "itemName": itemName,
         "command": command
     })).build();
-    //return new Trigger( getTrName(triggerName), "core.ItemCommandTrigger", new Configuration({
-    //    "itemName": itemName,
-    //    "command": command
-    //}));
 }
 var CommandEventTrigger = ItemCommandTrigger; 
 
 // ### TimerTrigger ###
 //!!!!!!!! timer.GenericCronTrigger !!!!!!!!!!!!!
 var GenericCronTrigger = function(expression, triggerName){
-	logWarn("#### GenericCronTrigger "+__LINE__, expression, getTrName(triggerName), Trigger);  // see: org.eclipse.smarthome.automation.sample.extension.java.internal.WelcomeHomeRulesProvider.createLightsRule()
+	//logWarn("#### GenericCronTrigger "+__LINE__, expression, getTrName(triggerName), Trigger);  // see: org.eclipse.smarthome.automation.sample.extension.java.internal.WelcomeHomeRulesProvider.createLightsRule()
     return ModuleBuilder.createTrigger().withId(getTrName(triggerName)).withTypeUID(GenericCronTriggerHandler.MODULE_TYPE_ID).withConfiguration( new Configuration({
         "cronExpression": expression
     })).build();
-    //return new Trigger( getTrName(triggerName), "timer.GenericCronTrigger", null, null, new Configuration({
-    //    "cronExpression": expression
-    //}));
 }
 var TimerTrigger = GenericCronTrigger; 
 
@@ -143,12 +128,7 @@ var ItemStateCondition = function(itemName, state, condName){
         "itemName": itemName,
         "operator": "=",
         "state": state
-    })).build();//.withInputs(inputs).build();
-    //return new Condition( getTrName(condName), ItemStateConditionHandler.ITEM_STATE_CONDITION, new Configuration({
-    //    "itemName": itemName,
-    //    "operator": "=",
-    //    "state": state
-    //}));
+    })).build();
 }
 var stateCondition = ItemStateCondition; 
 
@@ -158,12 +138,7 @@ var GenericCompareCondition = function(itemName, state, operator, condName){
         "itemName": itemName,
         "operator": operator,// matches, ==, <, >, =<, =>
         "state": state
-    })).build();//.withInputs(inputs).build();
-    //return new Condition( getTrName(condName), CompareConditionHandler.MODULE_TYPE, new Configuration({
-    //    "itemName": itemName,
-    //    "operator": operator,// matches, ==, <, >, =<, =>
-    //    "state": state
-    //}));
+    })).build();
 }
 //compareCondition("itemName", OFF, "==", "condNameOfCompareCondition")
 var compareCondition = GenericCompareCondition; 
@@ -171,5 +146,6 @@ var compareCondition = GenericCompareCondition;
 
 
 var getTrName = function(trn){
-	return trn == undefined || trn == null || trn == "" ? uuid.randomUUID() : trn;
+	return trn == undefined || trn == null || trn == "" ? uuid.randomUUID() + "-" + me.replace(/[^\w]/g, "-") : trn;
+	//return trn == undefined || trn == null || trn == "" ? uuid.randomUUID() : trn;
 }
