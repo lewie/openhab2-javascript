@@ -1,3 +1,9 @@
+/**
+ * Copyright (c) 2018 by Helmut Lehmeyer.
+ * 
+ * @author Helmut Lehmeyer 
+ */
+
 'use strict';
 var OPENHAB_CONF = Java.type("java.lang.System").getenv("OPENHAB_CONF"); // most this is /etc/openhab2
 load(OPENHAB_CONF+'/automation/jsr223/jslib/JSRule.js');

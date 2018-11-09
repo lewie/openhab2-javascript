@@ -1,6 +1,15 @@
+/**
+ * Copyright (c) 2018 by Helmut Lehmeyer.
+ * 
+ * @author Helmut Lehmeyer 
+ */
+
 'use strict';
 se.importPreset("RuleSupport");
 se.importPreset("RuleFactories");
+
+// Get Triggers and Conditions module output
+// http://localhost:8080/rest/module-types
 
 // Examles:
 // see: org.eclipse.smarthome.automation.sample.extension.java.internal.WelcomeHomeRulesProvider.createLightsRule()

@@ -1,3 +1,9 @@
+/**
+ * Copyright (c) 2018 by Helmut Lehmeyer.
+ * 
+ * @author Helmut Lehmeyer 
+ */
+
 'use strict';
 
 var OPENHAB_CONF = Java.type("java.lang.System").getenv("OPENHAB_CONF"); // most this is /etc/openhab2
@@ -54,6 +60,12 @@ var myRule = JSRule({
 		//getAction("Mail").static.sendMail("hl@lewi.io", "automation Mail :-)", "It works!");
 		//sendMail("hl@lewi.io", "automation Mail :-)", "It works!");
 		
+		//See: helper.js line 270
+		logInfo(" -- input "+ input);
+		logInfo(" -- oldState "+ input.oldState);
+		logInfo(" -- newState "+ input.newState);
+		logInfo(" -- event "+ input.event); //event=testItemSwitch changed from OFF to ON
+		logInfo(" -- event "+ getTriggeredData(input).triggerType);
 
 		logWarn(" -- getTriggers ", myRule.getTriggers());
         logWarn(" -- getConditions ", myRule.getConditions());

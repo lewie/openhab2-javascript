@@ -1,9 +1,19 @@
+/**
+ * Copyright (c) 2018 by Helmut Lehmeyer.
+ * 
+ * @author Helmut Lehmeyer 
+ */
+
 'use strict'; 
 	var OPENHAB_CONF 			= Java.type("java.lang.System").getenv("OPENHAB_CONF"); // most this is /etc/openhab2
 	var automationPath 			= OPENHAB_CONF+'/automation/';
 	var mainPath 				= automationPath + 'jsr223/';
 	//https://wiki.shibboleth.net/confluence/display/IDP30/ScriptedAttributeDefinition
 	var logger 					= Java.type("org.slf4j.LoggerFactory").getLogger("org.eclipse.smarthome.automation.module.script.rulesupport.internal.shared.SimpleRule");
+	
+	var RuleBuilder 			= Java.type("org.eclipse.smarthome.automation.core.util.RuleBuilder");
+	var RuleManager 			= Java.type("org.eclipse.smarthome.automation.RuleManager");
+
 	var uuid 					= Java.type("java.util.UUID");
 	var ScriptExecution 		= Java.type("org.eclipse.smarthome.model.script.actions.ScriptExecution");
 	var ScriptServiceUtil 		= Java.type("org.eclipse.smarthome.model.script.ScriptServiceUtil");
@@ -16,6 +26,7 @@
 	var InputStream				= Java.type("java.io.InputStream");
 	var IOUtils					= Java.type("org.apache.commons.io.IOUtils");
 	
+
 	//Types
 	var UnDefType 				= Java.type("org.eclipse.smarthome.core.types.UnDefType");
 	var StringListType 			= Java.type("org.eclipse.smarthome.core.library.types.StringListType");	
@@ -34,9 +45,8 @@
 	var ZoneOffset 				= Java.type("java.time.ZoneOffset");
 	var ZoneId 					= Java.type("java.time.ZoneId");
 	var OffsetDateTime 			= Java.type("java.time.OffsetDateTime");
-	
+
 	var Timer = Java.type('java.util.Timer');
-	
 	
 	//var QuartzScheduler = Java.type("org.quartz.core.QuartzScheduler");
 	
@@ -155,7 +165,7 @@
 		} 
 		return null;
 	};
-	
+
 	context.sendMail = function(mail, subject, message) {
 		getAction("Mail").static.sendMail(mail, subject, message);
 	};
@@ -178,7 +188,7 @@
 			//if(value == null || (!(Object.prototype.toString.call(value) === '[object String]') && isNaN(value) && (value+"") == "NaN")) {
 			//	context.logError("helper.js postUpdate " + __LINE__ + ". Cannot execute postUpdate!. 'command' must not be null or NaN: Item: '" + item + "' with value: '" + value + "'");
 			//}else{
-		events.postUpdate(item, value);
+				events.postUpdate(item, value);
 			//}
 		}catch(err) {
 			context.logError("helper.js postUpdate " + __LINE__ + ". Item: '" + item + "' with value: '" + value + "' ' Error:" +  err);
@@ -192,7 +202,7 @@
 			//if(value == null || (!(Object.prototype.toString.call(value) === '[object String]') && isNaN(value) && (value+"") == "NaN")) {
 			//	context.logError("helper.js sendCommand " + __LINE__ + ". Cannot execute sendCommand!. 'command' must not be null or NaN: Item: '" + item + "' with value: '" + value + "'");
 			//}else{
-		events.sendCommand(item, value);
+				events.sendCommand(item, value);
 			//}
 		}catch(err) {
 			context.logError("helper.js sendCommand " + __LINE__ + ". Item: '" + item + "' with value: '" + value + "' ' Error:" +  err);
@@ -233,7 +243,7 @@
 	   
 		// ...
 	};
-	
+
 	//round(ungerundeter Wert, Stellen nach dem Komma); round(6,66666, 2); -> 6,67
 	context.round = function( x, p) { return(Math.round(Math.pow(10, p)*x)/Math.pow(10, p));};
 	
@@ -302,26 +312,36 @@
 			itemName:	evArr[0]
 		};
 		
+
+		//TODO: ChannelEventTrigger
+		//TODO: stateCondition = ItemStateCondition; 
+		//TODO: GenericCompareCondition
+		//SEE Dokumentation: http://localhost:8080/rest/module-types
+
 		// {"oldState":null,"newState":null,"receivedState":null,"itemName":"KNX_HFLPB100ZJ200_White","eventType":"command","triggerType":"CommandEventTrigger"}'
 		switch (evArr[1]) {
 			case "received":
 				d.eventType = "command";
-				d.triggerType = "CommandEventTrigger"; //same as ChangedEventTrigger/ItemStateChangeTrigger
+				d.triggerType = "ItemCommandTrigger";
+				d.triggerTypeOld = "CommandEventTrigger";
 				d.receivedCommand = input.get("command")+"";
 				break;
 			case "updated":
 				d.eventType = "update";
-				d.triggerType = "UpdatedEventTrigger"; //same as UpdatedEventTrigger/ItemStateUpdateTrigger
+				d.triggerType = "ItemStateUpdateTrigger";
+				d.triggerTypeOld = "UpdatedEventTrigger";
 				d.receivedState = input.get("state")+"";
 				break;
 			case "changed":
 				d.eventType = "change";
-				d.triggerType = "ChangedEventTrigger";	//same as ChangedEventTrigger/ItemStateChangeTrigger
+				d.triggerType = "ItemStateChangeTrigger";
+				d.triggerTypeOld = "ChangedEventTrigger";
 				break;
 			default:
 				if(input.size() == 0){
 					d.eventType = "time";
-					d.triggerType = "TimerTrigger";
+					d.triggerType = "GenericCronTrigger";
+					d.triggerTypeOld = "TimerTrigger";
 				}else{
 					d.eventType = "";
 					d.triggerType = "";
@@ -405,7 +425,7 @@
 		}
 		return ExecUtil.executeCommandLineAndWaitResponse(commandLine, timeout);
 	};
-	
+
 	//### HttpUtil ###
 	//FROM: C:\dev\workspace\Lewi_20150721\clones\lc\lewienergy-build\bundles\lewienergy-actions\src\main\java\com\lewicleantech\lewienergy\openhab\action\util\Lewi.java
 	//static public String sendHttpPostRequest(String url, String contentType, String content, int timeout) { 
