@@ -218,7 +218,13 @@
 	context.restoreStates = function(mapArray) {
 		events.restoreStates(mapArray);
 	};
+	
+	//context.createTimerOLD = function(time, runnable) {
+		//return QuartzScheduler.createTimer(time, runnable);
+	//	return ScriptExecution.createTimer(time, runnable);
+	//};
 
+	//context.setTimeout = function(fn, millis /*, args... */) {
 	context.createTimer = function(time, runnable) {
 		try{
 			return ScriptExecution.createTimer(time, runnable);
@@ -435,6 +441,23 @@
 		return ExecUtil.executeCommandLineAndWaitResponse(commandLine, timeout);
 	};
 
+
+
+	/**
+	 * SIEHE ### getActions ### in helper.js
+	 * sendHttpGetRequest(String url)
+	 * sendHttpGetRequest(String url, int timeout)
+	 * sendHttpPutRequest(String url)
+	 * sendHttpPutRequest(String url, int timeout)
+	 * sendHttpPutRequest(String url, String contentType, String content)
+	 * sendHttpPutRequest(String url, String contentType, String content, int timeout)
+	 * sendHttpPostRequest(String url)
+	 * sendHttpPostRequest(String url, int timeout)
+	 * sendHttpPostRequest(String url, String contentType, String content)
+	 * sendHttpPostRequest(String url, String contentType, String content, int timeout)
+	 * sendHttpDeleteRequest(String url)
+	 * sendHttpDeleteRequest(String url, int timeout)
+	 */
 	//### HttpUtil ###
 	//FROM: C:\dev\workspace\Lewi_20150721\clones\lc\lewienergy-build\bundles\lewienergy-actions\src\main\java\com\lewicleantech\lewienergy\openhab\action\util\Lewi.java
 	//static public String sendHttpPostRequest(String url, String contentType, String content, int timeout) { 
