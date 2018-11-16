@@ -13,6 +13,7 @@
 	
 	var RuleBuilder 			= Java.type("org.eclipse.smarthome.automation.core.util.RuleBuilder");
 	var RuleManager 			= Java.type("org.eclipse.smarthome.automation.RuleManager");
+	//var Action 					= Java.type("org.eclipse.smarthome.automation.Action");
 
 	var uuid 					= Java.type("java.util.UUID");
 	var ScriptExecution 		= Java.type("org.eclipse.smarthome.model.script.actions.ScriptExecution");
@@ -217,31 +218,39 @@
 	context.restoreStates = function(mapArray) {
 		events.restoreStates(mapArray);
 	};
-	
-	//context.createTimerOLD = function(time, runnable) {
-		//return QuartzScheduler.createTimer(time, runnable);
-	//	return ScriptExecution.createTimer(time, runnable);
-	//};
+
+	context.createTimer = function(time, runnable) {
+		try{
+			return ScriptExecution.createTimer(time, runnable);
+		}catch(err) {
+			context.logError("helper.js createTimer " + __LINE__ + " Error:" +  err);
+		}
+	};
 
 	//https://blog.codecentric.de/en/2014/06/project-nashorn-javascript-jvm-polyglott/
 	context.timerObject = {
 		timerCount: 0,
 		evLoops:[]
 	};
-	//context.setTimeout = function(fn, millis /*, args... */) {
-	context.createTimer = function(fn, millis, arg) {
-		// ...
-		var t = context.timerObject;
-		if(t.timerCount > 999) t.timerCount = 0;
-		t.timerCount = t.timerCount + 1;
-		t.evLoops[t.timerCount] = new Timer('jsEventLoop'+t.timerCount, false);
-		t.evLoops[t.timerCount].schedule(function() {
-			//context.logInfo("context.createTimer",  millis, t.timerCount, fn);
-			//context.logInfo("context.createTimer " + context.now());
-			fn(arg);
-		  }, millis);
-	   
-		// ...
+	context.setTimeout = function(fn, millis, arg) {
+		try{ 
+			if( isFunction(fn) ){ //use
+				var t = context.timerObject;
+				if(t.timerCount > 999) t.timerCount = 0;
+				t.timerCount = t.timerCount + 1;
+				t.evLoops[t.timerCount] = new Timer('jsEventLoop'+t.timerCount, false);
+				t.evLoops[t.timerCount].schedule(function() {
+					//context.logInfo("context.createTimer",  millis, t.timerCount, fn);
+					//context.logInfo("context.createTimer " + context.now());
+					fn(arg);
+				}, millis);
+				return t.evLoops[t.timerCount];
+			}else{
+				context.logWarn("helper.js setTimeout " + __LINE__ + "Please use like: setTimeout(function, milliseconds, arguments)");
+			}
+		}catch(err) {
+			context.logError("helper.js setTimeout " + __LINE__ + " Error:" +  err);
+		}
 	};
 
 	//round(ungerundeter Wert, Stellen nach dem Komma); round(6,66666, 2); -> 6,67
@@ -525,6 +534,14 @@
 		context.logInfo("isEmpty: JSON.stringify({})="+JSON.stringify({}));
 		return JSON.stringify(obj) === JSON.stringify({});
 	}
+
+	var isFunction = function(v) {
+		if (v instanceof Function) { 
+			return true;
+		}
+		return false
+	};
 	
 	
 })(this);
+

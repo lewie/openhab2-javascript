@@ -20,9 +20,14 @@ JSRule({
 	execute: function( module, input){ 
 		logInfo("################ "+me+" Line: "+__LINE__+"  #################");
 		
+		logInfo( "createTimer start");
+		createTimer(DateTime.now().plusSeconds(2), function(){
+			logWarn( "createTimer stopped ");
+		});
+		
 		logInfo( "setTimeout start");
-		createTimer(function(m){
-			logWarn( "createTimer stoped " + m);
+		setTimeout(function(m){
+			logWarn( "setTimeout stopped " + m);
 		}, 1000, "bla");
 
 	}
