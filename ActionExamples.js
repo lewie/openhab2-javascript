@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 by Helmut Lehmeyer.
+ * Copyright (c) 2019 by Helmut Lehmeyer.
  * 
  * @author Helmut Lehmeyer 
  */
@@ -193,18 +193,18 @@ JSRule({
 		*/
 		
 		//print("PersistenceExtensions TEST: "+persistExt("previousState", "Suntracer_Temp"));
-		// ATTENTION tit writes to DB!! print("PersistenceExtensions persist: 	"+persist("Suntracer_Temp", 22));
-		print("PersistenceExtensions historicState: 	"+historicState("Suntracer_Temp", now().minusDays(3)));
-		print("PersistenceExtensions changedSince: 	"+changedSince("Suntracer_Temp", now().minusDays(3)));
-		print("PersistenceExtensions updatedSince: 	"+updatedSince("Suntracer_Temp", now().minusDays(3)));
-		print("PersistenceExtensions maximumSince: 	"+maximumSince("Suntracer_Temp", now().minusDays(3)));
-		print("PersistenceExtensions minimumSince: 	"+minimumSince("Suntracer_Temp", now().minusDays(3)));
-		print("PersistenceExtensions averageSince: 	"+averageSince("Suntracer_Temp", now().minusDays(3)));
-		print("PersistenceExtensions sumSince: 		"+sumSince("Suntracer_Temp", now().minusDays(3))); 	
-		print("PersistenceExtensions lastUpdate: 	"+lastUpdate("Suntracer_Temp")); 
-		print("PersistenceExtensions deltaSince: 	"+deltaSince("Suntracer_Temp", now().minusDays(3))); 
-		print("PersistenceExtensions evolutionRate: 	"+evolutionRate("Suntracer_Temp", now().minusDays(3)));
-		print("PersistenceExtensions previousState: 	"+previousState("Suntracer_Temp"));
+		// ATTENTION this writes to DB!! print("PersistenceExtensions persist: 	"+persist("Suntracer_Temp", 22));
+		logInfo("PersistenceExtensions historicState: 	"+historicState("Suntracer_Temp", now().minusDays(3)));
+		logInfo("PersistenceExtensions changedSince: 	"+changedSince("Suntracer_Temp", now().minusDays(3)));
+		logInfo("PersistenceExtensions updatedSince: 	"+updatedSince("Suntracer_Temp", now().minusDays(3)));
+		logInfo("PersistenceExtensions maximumSince: 	"+maximumSince("Suntracer_Temp", now().minusDays(3)));
+		logInfo("PersistenceExtensions minimumSince: 	"+minimumSince("Suntracer_Temp", now().minusDays(3)));
+		logInfo("PersistenceExtensions averageSince: 	"+averageSince("Suntracer_Temp", now().minusDays(3)));
+		logInfo("PersistenceExtensions sumSince: 		"+sumSince("Suntracer_Temp", now().minusDays(3))); 	
+		logInfo("PersistenceExtensions lastUpdate: 	"+lastUpdate("Suntracer_Temp")); 
+		logInfo("PersistenceExtensions deltaSince: 	"+deltaSince("Suntracer_Temp", now().minusDays(3))); 
+		logInfo("PersistenceExtensions evolutionRate: 	"+evolutionRate("Suntracer_Temp", now().minusDays(3)));
+		logInfo("PersistenceExtensions previousState: 	"+previousState("Suntracer_Temp"));
 
 	}
 });

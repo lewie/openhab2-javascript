@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 by Helmut Lehmeyer.
+ * Copyright (c) 2019 by Helmut Lehmeyer.
  * 
  * @author Helmut Lehmeyer 
  */

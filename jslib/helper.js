@@ -1,19 +1,18 @@
 /**
- * Copyright (c) 2018 by Helmut Lehmeyer.
+ * Copyright (c) 2019 by Helmut Lehmeyer.
  * 
  * @author Helmut Lehmeyer 
  */
 
 'use strict'; 
-	var OPENHAB_CONF 			= Java.type("java.lang.System").getenv("OPENHAB_CONF"); // most this is /etc/openhab2
+	var OPENHAB_CONF 			= Java.type("java.lang.System").getenv("OPENHAB_CONF");
 	var automationPath 			= OPENHAB_CONF+'/automation/';
 	var mainPath 				= automationPath + 'jsr223/';
 	//https://wiki.shibboleth.net/confluence/display/IDP30/ScriptedAttributeDefinition
-	var logger 					= Java.type("org.slf4j.LoggerFactory").getLogger("org.eclipse.smarthome.automation.module.script.rulesupport.internal.shared.SimpleRule");
+	var logger 					= Java.type("org.slf4j.LoggerFactory").getLogger("org.openhab.core.automation.module.script.rulesupport.internal.shared.SimpleRule");
 	
-	var RuleBuilder 			= Java.type("org.eclipse.smarthome.automation.core.util.RuleBuilder");
-	var RuleManager 			= Java.type("org.eclipse.smarthome.automation.RuleManager");
-	//var Action 					= Java.type("org.eclipse.smarthome.automation.Action");
+	var RuleBuilder 			= Java.type("org.openhab.core.automation.util.RuleBuilder");
+	var RuleManager 			= Java.type("org.openhab.core.automation.RuleManager");
 
 	var uuid 					= Java.type("java.util.UUID");
 	var ScriptExecution 		= Java.type("org.eclipse.smarthome.model.script.actions.ScriptExecution");
@@ -41,6 +40,8 @@
 	//Time JAVA 8
 	var LocalDate 				= Java.type("java.time.LocalDate");
 	var LocalDateTime 			= Java.type("java.time.LocalDateTime");
+	var FormatStyle 			= Java.type("java.time.format.FormatStyle");
+	var DateTimeFormatter 		= Java.type("java.time.format.DateTimeFormatter");//https://www.programcreek.com/java-api-examples/?class=java.time.format.DateTimeFormatter&method=ofLocalizedDateTime
 	var LocalTime 				= Java.type("java.time.LocalTime");
 	var Month 					= Java.type("java.time.Month");
 	var ZoneOffset 				= Java.type("java.time.ZoneOffset");
@@ -132,7 +133,7 @@
 	};
 	
 	//returns item if exists, if got a value and this is not set, it will be updated
-	context.updateIfUninitialized = function(it, val) {	
+	context.updateIfUninitialized = function(it, val, getFromDB) {	
 		try {
 			var item = context.getItem(it);
 			/*
@@ -153,10 +154,20 @@
 				//gefährlich, es fehlt dann zB intValue()
 				//if(val != undefined)postUpdate( it, val);
 				//return context.getItem(it);
+				context.error("updateIfUninitialized item not found "+__LINE__ + " item=" + item);
 				return item;
+			}
+			if(getFromDB && isUninitialized(it)){
+				var it_histval = historicState(it, now());
+				if(it_histval != undefined){
+					postUpdate( it, it_histval);
+					context.logInfo("updateIfUninitialized use DB history "+__LINE__ + " it_histval=" + it_histval);
+					return item;
+				}
 			}
 			if( isUninitialized(it) && val != undefined){
 				postUpdate( it, val);
+				context.logInfo("updateIfUninitialized use gotten val "+__LINE__ + " val=" + val);
 				return item;
 			}
 			return item;
@@ -209,6 +220,14 @@
 			context.logError("helper.js sendCommand " + __LINE__ + ". Item: '" + item + "' with value: '" + value + "' ' Error:" +  err);
 		}
 	};
+
+	context.sendCommandLater = function(item, value, millis) {
+		//if(millis == undefined)millis = 1000;
+		var zfunc = function(args){ 
+			sendCommand(""+args[0], args[1]);
+		};
+		setTimeout( zfunc, millis || 1000, [item, value]);
+	};
 	
 	//NOT TESTED YET: storeStates(Item...);
 	context.storeStates = function(item) {
@@ -218,13 +237,7 @@
 	context.restoreStates = function(mapArray) {
 		events.restoreStates(mapArray);
 	};
-	
-	//context.createTimerOLD = function(time, runnable) {
-		//return QuartzScheduler.createTimer(time, runnable);
-	//	return ScriptExecution.createTimer(time, runnable);
-	//};
 
-	//context.setTimeout = function(fn, millis /*, args... */) {
 	context.createTimer = function(time, runnable) {
 		try{
 			return ScriptExecution.createTimer(time, runnable);
@@ -243,12 +256,25 @@
 			if( isFunction(fn) ){ //use
 				var t = context.timerObject;
 				if(t.timerCount > 999) t.timerCount = 0;
-				t.timerCount = t.timerCount + 1;
+				var tCountLocal = t.timerCount + 1;
+				t.timerCount = tCountLocal;
 				t.evLoops[t.timerCount] = new Timer('jsEventLoop'+t.timerCount, false);
 				t.evLoops[t.timerCount].schedule(function() {
 					//context.logInfo("context.createTimer",  millis, t.timerCount, fn);
 					//context.logInfo("context.createTimer " + context.now());
 					fn(arg);
+					try{ 
+						//context.logWarn("setTimeout t.timerCount" + t.timerCount);//can be higher, because other Timers count up too.
+						//context.logWarn("setTimeout t.tCountLocal" + tCountLocal);
+						//cancel and purge itself
+						if(t.evLoops[tCountLocal]){
+							//context.logWarn("setTimeout t.evLoops[tCountLocal] found");
+							t.evLoops[tCountLocal].cancel();
+							t.evLoops[tCountLocal].purge();
+						}
+					}catch(err) {
+						context.logError("helper.js setTimeout " + __LINE__ + " Error:" +  err);
+					}
 				}, millis);
 				return t.evLoops[t.timerCount];
 			}else{
@@ -269,6 +295,18 @@
 	//context.now 				= function() { return LocalDateTime.now(); };
 	context.zoneOffset 			= function() { return OffsetDateTime.now().getOffset(); }; // +02:00
 	context.isoDateTimeString 	= function() { return context.now() + (""+context.zoneOffset()).split(":").join(""); }; // '2018-09-11T12:39:40.004+0200'
+	context.dateString 			= function(kind) { 
+		//https://www.programcreek.com/java-api-examples/?class=java.time.format.DateTimeFormatter&method=ofLocalizedDateTime
+		//return DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.SHORT).ISO_LOCAL_DATE_TIME;
+		//var n = LocalDateTime.now();
+        //System.out.println("Before : " + n);
+        //// DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        //var formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
+        //var formatDateTime = n.format(formatter);
+		//System.out.println("After : " + formatDateTime);
+		if(kind == "short")return LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yy HH:mm:ss"));
+		return LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss"));
+	};
 	
 	context.getObjectProperties = function(obj) {
 		for (var key in obj) {
@@ -309,7 +347,13 @@
 		//Light_UG_Arbeitsraum changed from ON to OFF
 		context.logInfo("event",ev.split("'").join("").split("Item ").join("").split(" "));
 		
-		var evArr = ev.split("'").join("").split("Item ").join("").split(" ");
+		var evArr = [];
+		if(context.strIncludes(ev, "triggered")){
+			var atmp = ev.split(" triggered "); //astro:sun:local:astroDawn#event triggered START
+			evArr = [atmp[0], "triggered", atmp[1]];
+		}else{
+			evArr = ev.split("'").join("").split("Item ").join("").split(" "); //Item 'benqth681_switch' received command ON
+		}
 		
 		//context.logInfo("size",input.size());
 		//context.logInfo("isEmpty",input.isEmpty());
@@ -324,6 +368,7 @@
 			newState:	input.get("newState")+"",
 			receivedCommand:	null,
 			receivedState:		null,
+			receivedTrigger:	null,
 			itemName:	evArr[0]
 		};
 		
@@ -334,23 +379,29 @@
 		//SEE Dokumentation: http://localhost:8080/rest/module-types
 
 		// {"oldState":null,"newState":null,"receivedState":null,"itemName":"KNX_HFLPB100ZJ200_White","eventType":"command","triggerType":"CommandEventTrigger"}'
+		//TODO FOR -> CommandEventTrigger("benqth681_switch")
+		//{53d3b7d3-9a57-4973-b3b0-5a80dc83cc56-irTrans-js.event=Item 'benqth681_switch' received command ON, event=Item 'benqth681_switch' received command ON, command=ON, 53d3b7d3-9a57-4973-b3b0-5a80dc83cc56-irTrans-js.command=ON, module=53d3b7d3-9a57-4973-b3b0-5a80dc83cc56-irTrans-js}
+		//{53d3b7d3-9a57-4973-b3b0-5a80dc83cc56-irTrans-js.event=Item 'benqth681_switch' received command OFF, event=Item 'benqth681_switch' received command OFF, command=OFF, 53d3b7d3-9a57-4973-b3b0-5a80dc83cc56-irTrans-js.command=OFF, module=53d3b7d3-9a57-4973-b3b0-5a80dc83cc56-irTrans-js}
+		//{4be43522-4fd5-41f3-b12e-018c4376b1fc-astro-js.event=astro:sun:local:astroDawn#event triggered START, event=astro:sun:local:astroDawn#event triggered START, module=4be43522-4fd5-41f3-b12e-018c4376b1fc-astro-js}
 		switch (evArr[1]) {
 			case "received":
 				d.eventType = "command";
 				d.triggerType = "ItemCommandTrigger";
-				d.triggerTypeOld = "CommandEventTrigger";
 				d.receivedCommand = input.get("command")+"";
 				break;
 			case "updated":
 				d.eventType = "update";
 				d.triggerType = "ItemStateUpdateTrigger";
-				d.triggerTypeOld = "UpdatedEventTrigger";
 				d.receivedState = input.get("state")+"";
 				break;
 			case "changed":
 				d.eventType = "change";
 				d.triggerType = "ItemStateChangeTrigger";
-				d.triggerTypeOld = "ChangedEventTrigger";
+				break;
+			case "triggered":
+				d.eventType = "triggered";
+				d.triggerType = "ChannelEventTrigger";
+				d.receivedTrigger =	evArr[2];
 				break;
 			default:
 				if(input.size() == 0){
@@ -527,7 +578,59 @@
 	context.allTrim = function(x) {
 		return x.replace(/^\s+|\s+$/gm,'');
 	}
-	
+	context.strIncludes = function(str, x) {
+		return str.indexOf(x) != -1 ? true : false;
+	}
+
+	/** JAVA COLLECTION TO ARRAY **/
+	context.javaCollectionToArray = function( jCollection){
+		try{ 
+			//updateIfUninitialized("Vitocom200")
+			//var members = getItem("UG").getAllMembers();
+			//var members = getItem("Vitocom200").getAllMembers();
+			var jsArray = [];
+			
+			//logInfo("MembersTEST", "##### keys ", Object.keys(members));
+			//logInfo("MembersTEST", "##### members ", members["gArbeit"]);
+					
+			//```javascript
+			//https://eclipse.org/smarthome/documentation/javadoc/index.html?org/eclipse/smarthome/core/library/items/class-use/SwitchItem.html
+			//NASHORN: https://github.com/EclairJS/eclairjs-nashorn/wiki/Nashorn-Java-to-JavaScript-interoperability-issues
+			//logInfo( "javaCollectionToArray class "+  jCollection.class ); 
+			//logInfo( "javaCollectionToArray length "+  jCollection.length ); 
+			//logInfo( "javaCollectionToArray size "+  jCollection.size ); 
+			//logInfo( "javaCollectionToArray size() "+  jCollection.size() ); 
+			//logInfo( "javaCollectionToArray [0] "+  jCollection[0] ); 
+			//logInfo( "javaCollectionToArray .get(0) "+  jCollection.get ); 
+			jCollection.forEach(function(key) {
+				//logInfo( "javaCollectionToArray Prints a toString output: "+ key );
+				//logInfo( "javaCollectionToArray As everything in JS: "+ typeof key );
+				//logInfo( "javaCollectionToArray OpenHAB Item class: "+ key.class );
+				//logInfo( "javaCollectionToArray OpenHAB Item Type: "+ key.getType() );
+				//logInfo( "javaCollectionToArray Item Name: "+ key.getName() );
+				//logInfo( "javaCollectionToArray Item State: "+ key.getState() ); 
+				jsArray.push(key);
+			});
+			return jsArray;
+		}catch(err) {
+			context.logError("helper.js javaCollectionToArray " + __LINE__ + " Error:" +  err);
+		}
+		return null;
+		
+	}
+	context.includes = function( obj, val ){
+		try{ 
+			for (var key in obj) {
+				//logInfo( "obj output: "+ key +"="+ obj[key]);
+				if(val != undefined && val == key+"")return true;
+			};
+		}catch(err) {
+			context.logError("helper.js includes " + __LINE__ + " Error:" +  err);
+			return false;
+		}
+		return false;
+	}
+
 	//### Locals vars/functions
 	var actions = null;
 	var actionList = [];
@@ -568,3 +671,47 @@
 	
 })(this);
 
+//PARKED
+
+	/* Get Functions of a Class. JAVA version of Reflect 
+	//https://stackoverflow.com/questions/1857775/getting-a-list-of-accessible-methods-for-a-given-class-via-reflection
+	public static Method[] getAccessibleMethods(Class clazz) {
+        List<Method> result = new ArrayList<Method>();
+
+        while (clazz != null) {
+            for (Method method : clazz.getDeclaredMethods()) {
+                int modifiers = method.getModifiers();
+                if (Modifier.isPublic(modifiers) || Modifier.isProtected(modifiers)) {
+                    result.add(method);
+                }
+            }
+            clazz = clazz.getSuperclass();
+        }
+
+        return result.toArray(new Method[result.size()]);
+	}
+	*/
+	/* Get Functions of a Class. JS Version
+	// IT DOES NOT WORK HERE :-(
+	context.getAccessibleMethods = function(clazz) {
+		try{
+			clazz = HttpUtil;
+			var result = [];
+			while (clazz != null) {
+				for (var method in clazz.getDeclaredMethods()) {
+					var modifiers = method.getModifiers();
+					logInfo("modifiers = " + modifiers);
+					if (Modifier.isPublic(modifiers) || Modifier.isProtected(modifiers)) {
+						result.push(method);
+						logInfo("method = " + method);
+					}
+				}
+				//clazz = clazz.getSuperclass();
+			}
+			logInfo("result = " + result);
+			return result;
+		}catch(err) {
+			context.logError("helper.js getAccessibleMethods " + __LINE__ + ". clazz: '" + clazz + "' Error:" +  err);
+		}
+    }
+	*/
