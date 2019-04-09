@@ -323,6 +323,7 @@ JSRule({
  * ThingAction
  * ThingStatusInfo getThingStatusInfo(String thingUid)
  */
+/* DOES NOT FIND ThingAction anymore
 var ThingAction = Java.type('org.eclipse.smarthome.model.script.actions.ThingAction');
 JSRule({
 	name: me+" ThingAction",
@@ -334,7 +335,7 @@ JSRule({
 		logInfo("################ "+me+" Line: "+__LINE__+"  #################");		
 		print("ThingAction getThingStatusInfo of': 	" + ThingAction.getThingStatusInfo("chromecast:chromecast:6a01c5ef0f0a6b3fd15849eda1379ab8"));	
 	}
-});
+});*/
 
 
 
