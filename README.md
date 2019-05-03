@@ -9,6 +9,7 @@ The JSR223 scripting extensions can be used for general scripting purposes, incl
 ## Installation
 
 A) Copy Files into /etc/openhab2/automation/jsr223
+
 B) Over Paper UI -> Misc install "Rule Engine"
 
 ## Defining Rules
