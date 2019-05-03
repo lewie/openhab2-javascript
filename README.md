@@ -14,6 +14,8 @@ B) Go to Paper UI -> Misc and install Binding "Rule Engine"
 
 ## Defining Rules
 
+[Migrating DSL Rules to JSR223/Javascript with a case example](https://community.openhab.org/t/migrating-dsl-rules-to-jsr223-javascript-with-a-case-example/73352)
+
 OpenHAB 2 JSR223 Scripting Documentation: [JSR223 Scripting and Rule Support](https://www.openhab.org/docs/configuration/jsr223.html#jsr223-scripting).
 
 Further links and information: [openHAB 1 Scripted Rule Support](https://github.com/eclipse/smarthome/wiki/Scripted-Rule-Support).
