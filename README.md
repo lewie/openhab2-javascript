@@ -1,6 +1,23 @@
+########################## IMPORTANT since 20190526 ##########################
+
+This repository has moved. It is now maintained together with other openHAB helper libraries on [openhab-scripters/openhab-helper-libraries](https://github.com/openhab-scripters/openhab-helper-libraries).
+
+The development of the different scripting languages for openHAB like
+
+    groovy
+    javascript
+    Jython (Python)
+    and many more...
+    
+will be combined and will later be an important part of the Next-Generation Rule Engine for openHAB. 
+
+########################## IMPORTANT since 20190526 ##########################
+
+
+
 # openHAB 2.x: JSR223 JavaScript Code since 2.4
 
-This is a repository of very experimental JavaScript code that can be used with the SmartHome platform and openHAB 2.x.
+This is a repository of very experimental JavaScript code that can be used with openHAB 2.x.
 
 ## Applications
 
@@ -8,9 +25,13 @@ The JSR223 scripting extensions can be used for general scripting purposes, incl
 
 ## Installation
 
-Copy Files into /etc/openhab2/automation/jsr223
+A) Copy Files into /etc/openhab2/automation/jsr223
+
+B) Go to Paper UI -> Misc and install Binding "Rule Engine"
 
 ## Defining Rules
+
+[Migrating DSL Rules to JSR223/Javascript with a case example](https://community.openhab.org/t/migrating-dsl-rules-to-jsr223-javascript-with-a-case-example/73352)
 
 OpenHAB 2 JSR223 Scripting Documentation: [JSR223 Scripting and Rule Support](https://www.openhab.org/docs/configuration/jsr223.html#jsr223-scripting).
 
