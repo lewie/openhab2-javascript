@@ -1,6 +1,23 @@
+########################## IMPORTANT since 20190526 ##########################
+
+This repository has moved. It is now maintained together with other openHAB helper libraries on [openhab-scripters/openhab-helper-libraries](https://github.com/openhab-scripters/openhab-helper-libraries).
+
+The development of the different scripting languages for openHAB like
+
+    groovy
+    javascript
+    Jython (Python)
+    and many more...
+    
+will be combined and will later be an important part of the Next-Generation Rule Engine for openHAB. 
+
+########################## IMPORTANT since 20190526 ##########################
+
+
+
 # openHAB 2.x: JSR223 JavaScript Code since 2.4
 
-This is a repository of very experimental JavaScript code that can be used with the SmartHome platform and openHAB 2.x.
+This is a repository of very experimental JavaScript code that can be used with openHAB 2.x.
 
 ## Applications
 
